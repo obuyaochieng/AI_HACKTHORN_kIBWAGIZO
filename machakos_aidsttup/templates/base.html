@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Machakos Drought Insurance System{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Custom CSS -->
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            color: #2c3e50 !important;
+        }
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(180deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+        }
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            display: block;
+            border-radius: 5px;
+            margin: 5px 0;
+        }
+        .sidebar a:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+        .sidebar a.active {
+            background-color: rgba(255,255,255,0.2);
+        }
+        .stat-card {
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: white;
+        }
+        .stat-card i {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        .alert-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            padding: 5px 10px;
+            border-radius: 50%;
+            font-size: 0.8rem;
+        }
+        .farm-marker {
+            border: 2px solid #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+        .drought-severe { color: #dc3545; }
+        .drought-high { color: #fd7e14; }
+        .drought-moderate { color: #ffc107; }
+        .drought-low { color: #28a745; }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <i class="fas fa-tractor"></i> Machakos AIDSTTUP
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'dashboard' %}">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'map_viewer' %}">
+                                <i class="fas fa-map"></i> Map
+                            </a>
+                        </li>
+                        {% if user.is_staff %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/">
+                                <i class="fas fa-cog"></i> Admin
+                            </a>
+                        </li>
+                        {% endif %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user"></i> {{ user.username }}
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-user-cog"></i> Profile</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'farmer_register' %}">
+                                <i class="fas fa-user-plus"></i> Register
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar (only for authenticated users) -->
+            {% if user.is_authenticated %}
+            <div class="col-md-2 d-none d-md-block sidebar p-3">
+                <h4 class="text-center mb-4">
+                    <i class="fas fa-tractor"></i> Navigation
+                </h4>
+                
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'dashboard' %}" class="list-group-item list-group-item-action bg-transparent {% if request.path == '/dashboard/' %}active{% endif %}">
+                        <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                    </a>
+                    <a href="{% url 'map_viewer' %}" class="list-group-item list-group-item-action bg-transparent {% if request.path == '/map/' %}active{% endif %}">
+                        <i class="fas fa-map me-2"></i> Map Viewer
+                    </a>
+                    <a href="{% url 'farmer_register' %}" class="list-group-item list-group-item-action bg-transparent {% if request.path == '/farmer/register/' %}active{% endif %}">
+                        <i class="fas fa-user-plus me-2"></i> Register Farmer
+                    </a>
+                    <a href="{% url 'farm_upload' %}" class="list-group-item list-group-item-action bg-transparent {% if request.path == '/farm/upload/' %}active{% endif %}">
+                        <i class="fas fa-upload me-2"></i> Upload Farm
+                    </a>
+                    <a href="{% url 'satellite_analysis' %}" class="list-group-item list-group-item-action bg-transparent {% if request.path == '/satellite/analyze/' %}active{% endif %}">
+                        <i class="fas fa-satellite me-2"></i> Satellite Analysis
+                    </a>
+                    
+                    <hr class="bg-light">
+                    
+                    <h6 class="mt-3 mb-2">Insurance</h6>
+                    <a href="{% url 'policy_list' %}" class="list-group-item list-group-item-action bg-transparent">
+                        <i class="fas fa-file-contract me-2"></i> Policies
+                    </a>
+                    <a href="{% url 'claim_list' %}" class="list-group-item list-group-item-action bg-transparent">
+                        <i class="fas fa-hand-holding-usd me-2"></i> Claims
+                    </a>
+                    <a href="{% url 'insurance_dashboard' %}" class="list-group-item list-group-item-action bg-transparent">
+                        <i class="fas fa-chart-line me-2"></i> Insurance Dashboard
+                    </a>
+                </div>
+                
+                <div class="mt-5">
+                    <h6>Quick Stats</h6>
+                    <small>
+                        <i class="fas fa-tractor me-1"></i> Farms: <strong id="farm-count">0</strong><br>
+                        <i class="fas fa-users me-1"></i> Farmers: <strong id="farmer-count">0</strong><br>
+                        <i class="fas fa-exclamation-triangle me-1"></i> Alerts: <strong id="alert-count">0</strong>
+                    </small>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Main content -->
+            <div class="{% if user.is_authenticated %}col-md-10{% else %}col-12{% endif %}">
+                <div class="container-fluid mt-3">
+                    <!-- Messages -->
+                    {% if messages %}
+                    <div class="messages">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Page title -->
+                    <div class="row mb-4">
+                        <div class="col">
+                            <h2>{% block page_title %}{% endblock %}</h2>
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb">
+                                    <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                                    {% block breadcrumbs %}{% endblock %}
+                                </ol>
+                            </nav>
+                        </div>
+                    </div>
+
+                    <!-- Main content block -->
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white mt-5 py-3">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Machakos AIDSTTUP</h5>
+                    <p>Drought Early Warning & Insurance System for Machakos County Farmers</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p>&copy; 2025 Machakos County. All rights reserved.</p>
+                    <p>Contact: info@machakos-drought.co.ke | Phone: +254 700 000 000</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom Scripts -->
+    <script>
+        // Update quick stats
+        $(document).ready(function() {
+            $.getJSON('/api/farms/', function(data) {
+                $('#farm-count').text(data.features.length || 0);
+            });
+            
+            // Load other stats via AJAX if needed
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

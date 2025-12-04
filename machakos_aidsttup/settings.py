@@ -73,7 +73,7 @@ INSTALLED_APPS = [
     'crispy_forms',         # Form styling
     'crispy_bootstrap5',    # Bootstrap 5 template pack for crispy forms
     'rest_framework',       # API framework
-    'corsheaders',          # For handling CORS (Cross-Origin Resource Sharing)
+    #'corsheaders',          # For handling CORS (Cross-Origin Resource Sharing)
     
     # Local applications
     'farms',                # Farm management and data

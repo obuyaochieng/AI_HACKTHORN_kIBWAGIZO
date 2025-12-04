@@ -1,0 +1,380 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Machakos Farm Map - {{ block.super }}{% endblock %}
+
+{% block page_title %}Machakos County Farm Map Viewer{% endblock %}
+
+{% block breadcrumbs %}
+    <li class="breadcrumb-item active" aria-current="page">Interactive Map</li>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    #map {
+        height: 600px;
+        width: 100%;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .map-controls {
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    .legend {
+        background: white;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .legend-item {
+        display: flex;
+        align-items: center;
+        margin: 5px 0;
+    }
+    .legend-color {
+        width: 20px;
+        height: 20px;
+        margin-right: 10px;
+        border-radius: 3px;
+    }
+    .farm-info {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="map-controls">
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="form-label">Layer Selection</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="layer-farms" checked>
+                        <label class="form-check-label" for="layer-farms">
+                            Show Farms
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="layer-subcounties" checked>
+                        <label class="form-check-label" for="layer-subcounties">
+                            Show Sub-Counties
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="layer-alerts">
+                        <label class="form-check-label" for="layer-alerts">
+                            Show Drought Alerts
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Zoom to Area</label>
+                    <select class="form-select" id="zoom-select">
+                        <option value="all">All Machakos</option>
+                        <option value="machakos_town">Machakos Town</option>
+                        <option value="kangundo">Kangundo</kbd></option>
+                        <option value="matungulu">Matungulu</option>
+                        <option value="kathiani">Kathiani</option>
+                        <option value="mwala">Mwala</option>
+                        <option value="yatta">Yatta</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Map Tools</label>
+                    <div class="btn-group w-100">
+                        <button class="btn btn-outline-primary" id="btn-refresh">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                        <button class="btn btn-outline-success" id="btn-print">
+                            <i class="fas fa-print"></i> Print
+                        </button>
+                        <button class="btn btn-outline-info" id="btn-fullscreen">
+                            <i class="fas fa-expand"></i> Fullscreen
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="map"></div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i> Farm Information
+                </h5>
+            </div>
+            <div class="card-body farm-info" id="farm-info">
+                <p class="text-muted">Click on a farm on the map to view details</p>
+                <div id="selected-farm-details" style="display: none;">
+                    <h6 id="farm-name"></h6>
+                    <table class="table table-sm">
+                        <tr><td><strong>Farmer:</strong></td><td id="farm-farmer"></td></tr>
+                        <tr><td><strong>Crop:</strong></td><td id="farm-crop"></td></tr>
+                        <tr><td><strong>Area:</strong></td><td id="farm-area"></td></tr>
+                        <tr><td><strong>NDVI:</strong></td><td id="farm-ndvi"></td></tr>
+                        <tr><td><strong>Status:</strong></td><td id="farm-status"></td></tr>
+                    </table>
+                    <a href="#" id="farm-link" class="btn btn-sm btn-primary w-100">
+                        View Full Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-map-legend me-2"></i> Map Legend
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #28a745;"></div>
+                        <span>Healthy Farm (NDVI > 0.4)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #ffc107;"></div>
+                        <span>Moderate Stress (NDVI 0.2-0.4)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #fd7e14;"></div>
+                        <span>High Stress (NDVI 0.1-0.2)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #dc3545;"></div>
+                        <span>Severe Stress (NDVI < 0.1)</span>
+                    </div>
+                    <hr>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #6f42c1; border: 2px solid white;"></div>
+                        <span>Sub-County Boundary</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #17a2b8; border: 2px dashed white;"></div>
+                        <span>Active Drought Alert</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i> Quick Stats
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <div class="stat-card rounded" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <i class="fas fa-tractor"></i>
+                            <h4 id="stat-farms">{{ total_farms }}</h4>
+                            <small>Total Farms</small>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="stat-card rounded" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                            <i class="fas fa-users"></i>
+                            <h4 id="stat-farmers">{{ total_farmers }}</h4>
+                            <small>Registered Farmers</small>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="stat-card rounded" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h4 id="stat-alerts">{{ active_alerts }}</h4>
+                            <small>Active Drought Alerts</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize map
+    var map = L.map('map').setView([{{ machakos_center.lat }}, {{ machakos_center.lng }}], {{ machakos_center.zoom }});
+    
+    // Add base layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    
+    // Layers
+    var farmsLayer = L.geoJSON(null, {
+        style: function(feature) {
+            var ndvi = feature.properties.ndvi_mean || 0.3;
+            var color;
+            if (ndvi > 0.4) color = '#28a745';
+            else if (ndvi > 0.2) color = '#ffc107';
+            else if (ndvi > 0.1) color = '#fd7e14';
+            else color = '#dc3545';
+            
+            return {
+                fillColor: color,
+                color: '#fff',
+                weight: 2,
+                opacity: 0.8,
+                fillOpacity: 0.6
+            };
+        },
+        onEachFeature: function(feature, layer) {
+            var popupContent = `
+                <div style="min-width: 200px;">
+                    <h6><strong>${feature.properties.name || 'Farm'}</strong></h6>
+                    <hr>
+                    <table class="table table-sm">
+                        <tr><td><strong>Farmer:</strong></td><td>${feature.properties.farmer__first_name} ${feature.properties.farmer__last_name}</td></tr>
+                        <tr><td><strong>Crop:</strong></td><td>${feature.properties.crop_type}</td></tr>
+                        <tr><td><strong>Area:</strong></td><td>${feature.properties.area_ha.toFixed(2)} ha</td></tr>
+                        <tr><td><strong>Ownership:</strong></td><td>${feature.properties.ownership_type}</td></tr>
+                    </table>
+                    <a href="/farm/${feature.properties.farm_id}/" class="btn btn-sm btn-primary w-100">
+                        View Details
+                    </a>
+                </div>
+            `;
+            layer.bindPopup(popupContent);
+            
+            layer.on('click', function(e) {
+                // Update farm info panel
+                $('#selected-farm-details').show();
+                $('#farm-name').text(feature.properties.name || 'Farm');
+                $('#farm-farmer').text(`${feature.properties.farmer__first_name} ${feature.properties.farmer__last_name}`);
+                $('#farm-crop').text(feature.properties.crop_type);
+                $('#farm-area').text(`${feature.properties.area_ha.toFixed(2)} ha`);
+                $('#farm-ndvi').text(feature.properties.ndvi_mean ? feature.properties.ndvi_mean.toFixed(3) : 'N/A');
+                $('#farm-status').html(getStatusBadge(feature.properties.ndvi_mean));
+                $('#farm-link').attr('href', `/farm/${feature.properties.farm_id}/`);
+            });
+        }
+    }).addTo(map);
+    
+    var subcountiesLayer = L.geoJSON(null, {
+        style: {
+            color: '#6f42c1',
+            weight: 2,
+            opacity: 0.7,
+            fillColor: '#e83e8c',
+            fillOpacity: 0.1
+        },
+        onEachFeature: function(feature, layer) {
+            var popupContent = `
+                <div style="min-width: 250px;">
+                    <h6><strong>${feature.properties.name} Sub-County</strong></h6>
+                    <hr>
+                    <table class="table table-sm">
+                        <tr><td><strong>Code:</strong></td><td>${feature.properties.subcounty_code}</td></tr>
+                        <tr><td><strong>Area:</strong></td><td>${feature.properties.area_sqkm.toFixed(2)} km²</td></tr>
+                        <tr><td><strong>Population:</strong></td><td>${feature.properties.population || 'N/A'}</td></tr>
+                        <tr><td><strong>Main Crops:</strong></td><td>${feature.properties.main_crops || 'N/A'}</td></tr>
+                        <tr><td><strong>Avg Rainfall:</strong></td><td>${feature.properties.avg_rainfall ? feature.properties.avg_rainfall + ' mm' : 'N/A'}</td></tr>
+                        <tr><td><strong>Soil Type:</strong></td><td>${feature.properties.soil_type || 'N/A'}</td></tr>
+                    </table>
+                </div>
+            `;
+            layer.bindPopup(popupContent);
+        }
+    }).addTo(map);
+    
+    // Load data
+    $.getJSON('/api/farms/', function(data) {
+        farmsLayer.addData(data);
+    });
+    
+    $.getJSON('/api/subcounties/', function(data) {
+        subcountiesLayer.addData(data);
+    });
+    
+    // Helper function for status badge
+    function getStatusBadge(ndvi) {
+        if (!ndvi) return '<span class="badge bg-secondary">No Data</span>';
+        if (ndvi > 0.4) return '<span class="badge bg-success">Healthy</span>';
+        if (ndvi > 0.2) return '<span class="badge bg-warning">Moderate</span>';
+        if (ndvi > 0.1) return '<span class="badge bg-danger">High Stress</span>';
+        return '<span class="badge bg-dark">Severe</span>';
+    }
+    
+    // Layer control
+    $('#layer-farms').change(function() {
+        if (this.checked) {
+            map.addLayer(farmsLayer);
+        } else {
+            map.removeLayer(farmsLayer);
+        }
+    });
+    
+    $('#layer-subcounties').change(function() {
+        if (this.checked) {
+            map.addLayer(subcountiesLayer);
+        } else {
+            map.removeLayer(subcountiesLayer);
+        }
+    });
+    
+    // Zoom control
+    $('#zoom-select').change(function() {
+        var bounds;
+        switch(this.value) {
+            case 'machakos_town':
+                map.setView([-1.5167, 37.2667], 13);
+                break;
+            case 'kangundo':
+                map.setView([-1.35, 37.35], 12);
+                break;
+            case 'matungulu':
+                map.setView([-1.45, 37.35], 12);
+                break;
+            case 'kathiani':
+                map.setView([-1.38, 37.38], 12);
+                break;
+            case 'mwala':
+                map.setView([-1.35, 37.45], 12);
+                break;
+            case 'yatta':
+                map.setView([-1.30, 37.60], 11);
+                break;
+            default:
+                map.setView([{{ machakos_center.lat }}, {{ machakos_center.lng }}], {{ machakos_center.zoom }});
+        }
+    });
+    
+    // Button controls
+    $('#btn-refresh').click(function() {
+        farmsLayer.clearLayers();
+        $.getJSON('/api/farms/', function(data) {
+            farmsLayer.addData(data);
+        });
+    });
+    
+    $('#btn-print').click(function() {
+        window.print();
+    });
+    
+    $('#btn-fullscreen').click(function() {
+        var elem = document.getElementById('map');
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+            elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) {
+            elem.msRequestFullscreen();
+        }
+    });
+</script>
+{% endblock %}
