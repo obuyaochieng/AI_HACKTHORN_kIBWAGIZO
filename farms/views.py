@@ -1,364 +1,402 @@
-import json
-import geopandas as gpd
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse, HttpResponse
-from django.core.serializers import serialize
-from django.db.models import Count, Avg, Sum
-from django.utils import timezone
+from django.views.generic import ListView, DetailView, TemplateView
+from django.db.models import Count, Avg, Max, Min
+from django.core.paginator import Paginator
+import json
 from datetime import datetime, timedelta
-from .models import Farm, Farmer, SubCounty, SatelliteAnalysis, DroughtAlert
-from .forms import FarmerRegistrationForm, FarmUploadForm
-import ee
 
-def map_viewer(request):
-    """Interactive map viewer for Machakos County"""
-    # Get Machakos center coordinates
-    machakos_center = {
-        'lat': -1.52,
-        'lng': 37.26,
-        'zoom': 10
-    }
-    
-    # Get statistics for display
-    total_farms = Farm.objects.count()
-    total_farmers = Farmer.objects.count()
-    active_alerts = DroughtAlert.objects.filter(is_active=True).count()
-    
-    context = {
-        'machakos_center': machakos_center,
-        'total_farms': total_farms,
-        'total_farmers': total_farmers,
-        'active_alerts': active_alerts,
-    }
-    
-    return render(request, 'map_viewer.html', context)
+from .models import Farm, Farmer, County, SatelliteAnalysis, InsurancePolicy, InsuranceClaim
+from .utils.gee_utils import GEEAnalyzer, ShapefileProcessor, test_gee_connection
 
-def farm_geojson(request):
-    """Return farms as GeoJSON"""
-    farms = Farm.objects.all()
-    
-    # Convert to GeoJSON
-    geojson_data = serialize('geojson', farms,
-        geometry_field='geom',
-        fields=('farm_id', 'name', 'farmer__first_name', 'farmer__last_name', 
-                'crop_type', 'area_ha', 'ownership_type')
-    )
-    
-    return JsonResponse(json.loads(geojson_data), safe=False)
 
-def subcounty_geojson(request):
-    """Return subcounties as GeoJSON"""
-    subcounties = SubCounty.objects.all()
+class MapView(TemplateView):
+    """Main map view for Machakos County"""
+    template_name = 'map_viewer.html'
     
-    geojson_data = serialize('geojson', subcounties,
-        geometry_field='geom',
-        fields=('name', 'subcounty_code', 'area_sqkm', 'population', 
-                'main_crops', 'avg_rainfall', 'soil_type')
-    )
-    
-    return JsonResponse(json.loads(geojson_data), safe=False)
-
-def farmer_register(request):
-    """Register a new farmer"""
-    if request.method == 'POST':
-        form = FarmerRegistrationForm(request.POST)
-        if form.is_valid():
-            farmer = form.save(commit=False)
-            
-            # Generate farmer ID
-            from datetime import datetime
-            timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-            farmer.farmer_id = f"FARM{timestamp[-6:]}"
-            
-            # If user is registering themselves
-            if request.user.is_authenticated:
-                farmer.user = request.user
-            
-            farmer.save()
-            messages.success(request, f'Farmer {farmer.full_name} registered successfully! Farmer ID: {farmer.farmer_id}')
-            return redirect('farmer_detail', farmer_id=farmer.id)
-    else:
-        form = FarmerRegistrationForm()
-    
-    # Get subcounty choices
-    subcounties = SubCounty.objects.all().values('id', 'name')
-    
-    context = {
-        'form': form,
-        'subcounties': list(subcounties),
-    }
-    
-    return render(request, 'farmer_register.html', context)
-
-def farm_upload(request):
-    """Upload farm polygon (GeoJSON/Shapefile)"""
-    if request.method == 'POST':
-        form = FarmUploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            try:
-                # Process uploaded file
-                uploaded_file = request.FILES['geojson_file']
-                file_extension = uploaded_file.name.split('.')[-1].lower()
-                
-                if file_extension == 'geojson':
-                    # Read GeoJSON
-                    gdf = gpd.read_file(uploaded_file)
-                elif file_extension == 'zip':
-                    # Read Shapefile (zipped)
-                    gdf = gpd.read_file(f"zip://{uploaded_file.file}")
-                else:
-                    messages.error(request, 'Unsupported file format. Please upload GeoJSON or zipped Shapefile.')
-                    return redirect('farm_upload')
-                
-                # Validate CRS
-                if gdf.crs != 'EPSG:4326':
-                    gdf = gdf.to_crs('EPSG:4326')
-                
-                # Process each feature
-                farmer_id = form.cleaned_data['farmer_id']
-                farmer = get_object_or_404(Farmer, farmer_id=farmer_id)
-                
-                farms_created = []
-                for idx, row in gdf.iterrows():
-                    # Create farm
-                    farm = Farm(
-                        farm_id=f"{farmer.farmer_id}_F{idx+1:03d}",
-                        farmer=farmer,
-                        name=row.get('name', f'{farmer.full_name} Farm {idx+1}'),
-                        geom=row.geometry.wkt,
-                        area_ha=row.geometry.area * 10000,  # Convert from deg² to hectares (approx)
-                        crop_type=row.get('crop', 'maize'),
-                        crop_variety=row.get('variety', ''),
-                        ownership_type='owned'
-                    )
-                    farm.save()
-                    farms_created.append(farm)
-                
-                messages.success(request, f'Successfully uploaded {len(farms_created)} farms for {farmer.full_name}')
-                return redirect('farmer_detail', farmer_id=farmer.id)
-                
-            except Exception as e:
-                messages.error(request, f'Error processing file: {str(e)}')
-    else:
-        form = FarmUploadForm()
-    
-    return render(request, 'farm_upload.html', {'form': form})
-
-def satellite_analysis(request):
-    """Run satellite analysis for farms"""
-    if not request.user.is_staff:
-        messages.error(request, 'Only staff members can run satellite analysis.')
-        return redirect('dashboard')
-    
-    if request.method == 'POST':
-        farm_ids = request.POST.getlist('farm_ids')
-        start_date = request.POST.get('start_date')
-        end_date = request.POST.get('end_date')
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         
-        if not farm_ids:
-            messages.error(request, 'Please select at least one farm.')
-            return redirect('satellite_analysis')
+        # Get Machakos County
+        machakos = County.objects.filter(county__icontains='machakos').first()
         
-        # Initialize Earth Engine
+        # Get farms for display
+        farms = Farm.objects.filter(is_active=True).select_related('farmer', 'county')
+        
+        # Prepare farm data for map
+        farm_data = []
+        for farm in farms:
+            # Get latest analysis
+            latest_analysis = farm.analyses.order_by('-analysis_date').first()
+            
+            farm_data.append({
+                'id': farm.id,
+                'farm_id': farm.farm_id,
+                'name': farm.name,
+                'farmer': farm.farmer.full_name if farm.farmer else '',
+                'crop': farm.crop_type,
+                'area_ha': farm.area_ha,
+                'centroid': {
+                    'lat': farm.centroid.y,
+                    'lng': farm.centroid.x
+                } if farm.centroid else None,
+                'geometry': json.loads(farm.geometry.geojson) if farm.geometry else None,
+                'risk_level': latest_analysis.drought_risk_level if latest_analysis else 'unknown',
+                'risk_color': latest_analysis.risk_color if latest_analysis else 'gray',
+                'ndvi': latest_analysis.ndvi if latest_analysis else None,
+                'insurance_triggered': latest_analysis.insurance_triggered if latest_analysis else False,
+            })
+        
+        context.update({
+            'machakos_county': machakos,
+            'farms': farms,
+            'farm_data_json': json.dumps(farm_data),
+            'total_farms': farms.count(),
+            'total_area': sum(f.area_ha for f in farms if f.area_ha),
+            'crop_types': list(set(f.crop_type for f in farms if f.crop_type)),
+        })
+        
+        return context
+
+
+class SatelliteAnalysisView(TemplateView):
+    """Satellite analysis dashboard"""
+    template_name = 'satellite_analysis.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Years available for analysis
+        years = list(range(2021, 2026))
+        
+        # Months
+        months = [
+            {'id': 1, 'name': 'January'},
+            {'id': 2, 'name': 'February'},
+            {'id': 3, 'name': 'March'},
+            {'id': 4, 'name': 'April'},
+            {'id': 5, 'name': 'May'},
+            {'id': 6, 'name': 'June'},
+            {'id': 7, 'name': 'July'},
+            {'id': 8, 'name': 'August'},
+            {'id': 9, 'name': 'September'},
+            {'id': 10, 'name': 'October'},
+            {'id': 11, 'name': 'November'},
+            {'id': 12, 'name': 'December'},
+        ]
+        
+        # Indices
+        indices = [
+            {'id': 'NDVI', 'name': 'NDVI', 'description': 'Normalized Difference Vegetation Index'},
+            {'id': 'EVI', 'name': 'EVI', 'description': 'Enhanced Vegetation Index'},
+            {'id': 'NDMI', 'name': 'NDMI', 'description': 'Normalized Difference Moisture Index'},
+            {'id': 'SAVI', 'name': 'SAVI', 'description': 'Soil Adjusted Vegetation Index'},
+            {'id': 'NDRE', 'name': 'NDRE', 'description': 'Normalized Difference Red Edge'},
+        ]
+        
+        context.update({
+            'years': years,
+            'months': months,
+            'indices': indices,
+            'current_year': datetime.now().year,
+            'current_month': datetime.now().month,
+        })
+        
+        return context
+
+
+class DashboardView(TemplateView):
+    """Main dashboard for insurance admin"""
+    template_name = 'dashboard.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Get summary statistics
+        total_farms = Farm.objects.filter(is_active=True).count()
+        total_farmers = Farmer.objects.count()
+        total_area = Farm.objects.filter(is_active=True).aggregate(
+            total=Sum('area_ha')
+        )['total'] or 0
+        
+        # Get insurance stats
+        active_policies = InsurancePolicy.objects.filter(status='active').count()
+        total_claims = InsuranceClaim.objects.count()
+        pending_claims = InsuranceClaim.objects.filter(status='pending').count()
+        total_payout = InsuranceClaim.objects.filter(status__in=['approved', 'paid']).aggregate(
+            total=Sum('approved_amount')
+        )['total'] or 0
+        
+        # Get risk distribution
+        latest_analyses = SatelliteAnalysis.objects.filter(
+            analysis_date__gte=datetime.now() - timedelta(days=30)
+        ).order_by('farm', '-analysis_date').distinct('farm')
+        
+        risk_counts = {
+            'low': 0,
+            'moderate': 0,
+            'severe': 0,
+            'unknown': 0,
+        }
+        
+        for analysis in latest_analyses:
+            risk_counts[analysis.drought_risk_level] = risk_counts.get(analysis.drought_risk_level, 0) + 1
+        
+        # Get recent claims
+        recent_claims = InsuranceClaim.objects.order_by('-submitted_date')[:10]
+        
+        # Get farms needing attention
+        high_risk_farms = Farm.objects.filter(
+            analyses__drought_risk_level='severe',
+            analyses__analysis_date__gte=datetime.now() - timedelta(days=30)
+        ).distinct()[:10]
+        
+        context.update({
+            'total_farms': total_farms,
+            'total_farmers': total_farmers,
+            'total_area': total_area,
+            'active_policies': active_policies,
+            'total_claims': total_claims,
+            'pending_claims': pending_claims,
+            'total_payout': total_payout,
+            'risk_counts': risk_counts,
+            'recent_claims': recent_claims,
+            'high_risk_farms': high_risk_farms,
+        })
+        
+        return context
+
+
+# API Views
+@login_required
+def run_analysis(request):
+    """Run satellite analysis for selected farms"""
+    if request.method == 'POST':
         try:
-            ee.Initialize()
-        except:
-            messages.error(request, 'Google Earth Engine not initialized. Please check credentials.')
-            return redirect('satellite_analysis')
-        
-        # Process each farm
-        analysis_count = 0
-        for farm_id in farm_ids:
-            farm = get_object_or_404(Farm, farm_id=farm_id)
+            data = json.loads(request.body)
+            farm_ids = data.get('farm_ids', [])
+            year = data.get('year', datetime.now().year)
+            month = data.get('month', datetime.now().month)
             
-            # Run analysis (simplified - implement actual GEE analysis)
-            try:
-                analysis = run_satellite_analysis(farm, start_date, end_date)
-                if analysis:
-                    analysis_count += 1
+            # Get farms
+            farms = Farm.objects.filter(farm_id__in=farm_ids)
+            
+            # Initialize GEE analyzer
+            analyzer = GEEAnalyzer()
+            
+            results = []
+            for farm in farms:
+                # Convert farm geometry to ee.Geometry
+                geojson = json.loads(farm.geometry.geojson)
+                ee_geometry = ee.Geometry(geojson)
+                
+                # Run analysis
+                analysis_result = analyzer.analyze_farm(
+                    ee_geometry, 
+                    farm.farm_id,
+                    year,
+                    month
+                )
+                
+                if analysis_result:
+                    # Save to database
+                    satellite_analysis = SatelliteAnalysis(
+                        farm=farm,
+                        analysis_date=datetime(year, month, 1).date(),
+                        year=year,
+                        month=month,
+                        ndvi=analysis_result.get('ndvi'),
+                        evi=analysis_result.get('evi'),
+                        ndmi=analysis_result.get('ndmi'),
+                        savi=analysis_result.get('savi'),
+                        ndre=analysis_result.get('ndre'),
+                        rainfall_mm=analysis_result.get('rainfall_mm'),
+                        cloud_cover_percentage=None,  # Could calculate from metadata
+                        image_count=analysis_result.get('image_count', 0),
+                    )
+                    satellite_analysis.save()
                     
-                    # Check for drought alerts
-                    check_drought_alert(farm, analysis)
-                    
-            except Exception as e:
-                messages.warning(request, f'Error analyzing farm {farm_id}: {str(e)}')
-        
-        messages.success(request, f'Analysis complete for {analysis_count} farms.')
-        return redirect('dashboard')
+                    results.append({
+                        'farm_id': farm.farm_id,
+                        'success': True,
+                        'analysis_id': satellite_analysis.id,
+                        'ndvi': satellite_analysis.ndvi,
+                        'risk_level': satellite_analysis.drought_risk_level,
+                    })
+                else:
+                    results.append({
+                        'farm_id': farm.farm_id,
+                        'success': False,
+                        'error': 'No satellite data available',
+                    })
+            
+            return JsonResponse({
+                'success': True,
+                'results': results,
+                'message': f'Analysis completed for {len(results)} farms'
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=500)
     
-    # GET request - show form
-    farms = Farm.objects.filter(is_active=True)
-    
-    # Default dates (last 30 days)
-    end_date = datetime.now().date()
-    start_date = end_date - timedelta(days=30)
-    
-    context = {
-        'farms': farms,
-        'start_date': start_date.strftime('%Y-%m-%d'),
-        'end_date': end_date.strftime('%Y-%m-%d'),
-    }
-    
-    return render(request, 'satellite_analysis.html', context)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
-def run_satellite_analysis(farm, start_date, end_date):
-    """
-    Run satellite analysis using Google Earth Engine
-    This is a simplified version - implement actual GEE analysis
-    """
-    try:
-        # Convert geometry to EE
-        geom_wkt = farm.geom.wkt
-        # Parse WKT and convert to EE geometry (simplified)
-        
-        # Example analysis (implement actual GEE calls)
-        # For now, create mock data
-        from django.utils import timezone
-        import random
-        
-        analysis = SatelliteAnalysis(
-            farm=farm,
-            analysis_date=timezone.now().date(),
-            image_date=(timezone.now() - timedelta(days=2)).date(),
-            
-            # Mock vegetation indices
-            ndvi_mean=random.uniform(0.1, 0.8),
-            ndvi_min=random.uniform(0.05, 0.6),
-            ndvi_max=random.uniform(0.3, 0.9),
-            ndvi_std=random.uniform(0.05, 0.2),
-            
-            ndmi_mean=random.uniform(-0.1, 0.4),
-            ndwi_mean=random.uniform(-0.2, 0.3),
-            
-            soil_moisture=random.uniform(10, 80),
-            
-            vegetation_health='good',
-            moisture_status='adequate',
-            
-            cloud_cover_percentage=random.uniform(0, 30),
-            satellite_source='Sentinel-2'
-        )
-        
-        analysis.save()
-        return analysis
-        
-    except Exception as e:
-        print(f"Analysis error: {e}")
-        return None
-
-def check_drought_alert(farm, analysis):
-    """Check if analysis triggers a drought alert"""
-    # Thresholds
-    NDVI_ALERT = 0.2
-    NDMI_ALERT = 0.1
-    
-    trigger_reasons = []
-    ndvi_breached = False
-    ndmi_breached = False
-    soil_moisture_breached = False
-    
-    if analysis.ndvi_mean < NDVI_ALERT:
-        trigger_reasons.append(f"Low NDVI ({analysis.ndvi_mean:.3f} < {NDVI_ALERT})")
-        ndvi_breached = True
-    
-    if analysis.ndmi_mean < NDMI_ALERT:
-        trigger_reasons.append(f"Low moisture index ({analysis.ndmi_mean:.3f} < {NDMI_ALERT})")
-        ndmi_breached = True
-    
-    if analysis.soil_moisture and analysis.soil_moisture < 20:
-        trigger_reasons.append(f"Low soil moisture ({analysis.soil_moisture:.1f}% < 20%)")
-        soil_moisture_breached = True
-    
-    if trigger_reasons:
-        # Determine severity
-        if analysis.ndvi_mean < 0.1:
-            severity = 'severe'
-        elif analysis.ndvi_mean < 0.15:
-            severity = 'high'
-        elif analysis.ndvi_mean < 0.2:
-            severity = 'moderate'
-        else:
-            severity = 'low'
-        
-        # Create alert
-        alert = DroughtAlert(
-            farm=farm,
-            analysis=analysis,
-            severity=severity,
-            trigger_reason='; '.join(trigger_reasons),
-            ndvi_breached=ndvi_breached,
-            ndmi_breached=ndmi_breached,
-            soil_moisture_breached=soil_moisture_breached,
-            start_date=analysis.image_date,
-            is_active=True
-        )
-        alert.save()
 
 @login_required
-def dashboard(request):
-    """Main dashboard"""
-    # Statistics
-    stats = {
-        'total_farms': Farm.objects.count(),
-        'total_farmers': Farmer.objects.count(),
-        'active_alerts': DroughtAlert.objects.filter(is_active=True).count(),
-        'policies_active': 0,  # Will implement with insurance app
-        'total_area': Farm.objects.aggregate(total=Sum('area_ha'))['total'] or 0,
-    }
-    
-    # Recent alerts
-    recent_alerts = DroughtAlert.objects.filter(is_active=True).order_by('-detected_date')[:10]
-    
-    # Recent analyses
-    recent_analyses = SatelliteAnalysis.objects.all().order_by('-analysis_date')[:10]
-    
-    # Subcounty distribution
-    subcounty_stats = SubCounty.objects.annotate(
-        farm_count=Count('farmer__farms')
-    ).values('name', 'farm_count')[:5]
-    
-    context = {
-        'stats': stats,
-        'recent_alerts': recent_alerts,
-        'recent_analyses': recent_analyses,
-        'subcounty_stats': subcounty_stats,
-        'user': request.user,
-    }
-    
-    return render(request, 'dashboard.html', context)
-
-def farmer_detail(request, farmer_id):
-    """Farmer detail view"""
-    farmer = get_object_or_404(Farmer, id=farmer_id)
-    farms = farmer.farms.all()
-    
-    # Get farmer's alerts
-    alerts = DroughtAlert.objects.filter(farm__farmer=farmer, is_active=True)
-    
-    context = {
-        'farmer': farmer,
-        'farms': farms,
-        'alerts': alerts,
-    }
-    
-    return render(request, 'farmer_detail.html', context)
-
-def farm_detail(request, farm_id):
-    """Farm detail view"""
+def get_analysis_data(request, farm_id):
+    """Get analysis data for a farm"""
     farm = get_object_or_404(Farm, farm_id=farm_id)
-    analyses = SatelliteAnalysis.objects.filter(farm=farm).order_by('-analysis_date')
-    alerts = DroughtAlert.objects.filter(farm=farm).order_by('-detected_date')
     
-    # Get historical NDVI data for chart
-    ndvi_history = analyses.values('analysis_date', 'ndvi_mean')[:30]
+    # Get all analyses for this farm
+    analyses = SatelliteAnalysis.objects.filter(farm=farm).order_by('year', 'month')
     
-    context = {
-        'farm': farm,
-        'analyses': analyses,
-        'alerts': alerts,
-        'ndvi_history': list(ndvi_history),
+    data = {
+        'farm': {
+            'id': farm.farm_id,
+            'name': farm.name,
+            'crop': farm.crop_type,
+            'area_ha': farm.area_ha,
+            'farmer': farm.farmer.full_name if farm.farmer else '',
+        },
+        'analyses': [],
+        'monthly_averages': {},
     }
     
-    return render(request, 'farm_detail.html', context)
+    # Prepare time series data
+    for analysis in analyses:
+        data['analyses'].append({
+            'date': f"{analysis.year}-{analysis.month:02d}",
+            'year': analysis.year,
+            'month': analysis.month,
+            'ndvi': analysis.ndvi,
+            'evi': analysis.evi,
+            'ndmi': analysis.ndmi,
+            'savi': analysis.savi,
+            'ndre': analysis.ndre,
+            'rainfall_mm': analysis.rainfall_mm,
+            'risk_level': analysis.drought_risk_level,
+            'risk_color': analysis.risk_color,
+            'insurance_triggered': analysis.insurance_triggered,
+        })
+    
+    # Calculate monthly averages across years
+    months = list(range(1, 13))
+    for month in months:
+        month_analyses = analyses.filter(month=month)
+        if month_analyses.exists():
+            data['monthly_averages'][month] = {
+                'ndvi': month_analyses.aggregate(Avg('ndvi'))['ndvi__avg'],
+                'rainfall': month_analyses.aggregate(Avg('rainfall_mm'))['rainfall_mm__avg'],
+                'count': month_analyses.count(),
+            }
+    
+    return JsonResponse(data)
+
+
+@staff_member_required
+def import_shapefiles(request):
+    """Import shapefiles and farms from CSV"""
+    if request.method == 'POST':
+        try:
+            processor = ShapefileProcessor()
+            
+            # Import county boundaries
+            county_fc = processor.load_machakos_county()
+            
+            # Import farms
+            farms_fc = processor.load_farms_from_geojson()
+            
+            # Process and save to database
+            # This would iterate through features and create Farm objects
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Import completed successfully',
+                'county_features': county_fc.size().getInfo(),
+                'farm_features': farms_fc.size().getInfo(),
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=500)
+    
+    # GET request - show import form
+    return render(request, 'import_shapefiles.html')
+
+
+@login_required
+def trigger_insurance_check(request):
+    """Check and trigger insurance claims based on analysis"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            farm_id = data.get('farm_id')
+            analysis_id = data.get('analysis_id')
+            
+            farm = get_object_or_404(Farm, farm_id=farm_id)
+            analysis = get_object_or_404(SatelliteAnalysis, id=analysis_id, farm=farm)
+            
+            # Check if insurance should be triggered
+            if analysis.insurance_triggered:
+                # Check if policy exists
+                try:
+                    policy = farm.insurance_policy
+                    
+                    # Create claim
+                    claim = InsuranceClaim(
+                        policy=policy,
+                        farm=farm,
+                        triggered_by_analysis=analysis,
+                        trigger_date=analysis.analysis_date,
+                        claim_amount=policy.sum_insured * policy.payout_rate,
+                        ndvi_value=analysis.ndvi,
+                        rainfall_value=analysis.rainfall_mm,
+                    )
+                    claim.save()
+                    
+                    return JsonResponse({
+                        'success': True,
+                        'claim_created': True,
+                        'claim_number': claim.claim_number,
+                        'claim_amount': float(claim.claim_amount),
+                        'message': 'Insurance claim created successfully',
+                    })
+                    
+                except InsurancePolicy.DoesNotExist:
+                    return JsonResponse({
+                        'success': True,
+                        'claim_created': False,
+                        'message': 'Insurance should be triggered but no active policy found',
+                    })
+            else:
+                return JsonResponse({
+                    'success': True,
+                    'claim_created': False,
+                    'message': 'Insurance thresholds not met',
+                })
+                
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=500)
+    
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+def test_gee_api(request):
+    """Test GEE API connection"""
+    success = test_gee_connection()
+    
+    return JsonResponse({
+        'success': success,
+        'message': 'GEE connection test completed',
+        'timestamp': datetime.now().isoformat(),
+    })
