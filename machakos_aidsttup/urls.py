@@ -21,50 +21,19 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 ]
 """
-
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.views.generic import TemplateView
-from farms import views as farm_views
+from django.views.generic import RedirectView
 
 urlpatterns = [
-    # Admin
     path('admin/', admin.site.urls),
-    
-    # Authentication
-    path('accounts/', include('django.contrib.auth.urls')),
-    
-    # Main pages
-    path('', TemplateView.as_view(template_name='index.html'), name='home'),
-    path('dashboard/', farm_views.dashboard, name='dashboard'),
-    
-    # Map viewer
-    path('map/', farm_views.map_viewer, name='map_viewer'),
-    path('api/farms/', farm_views.farm_geojson, name='farm_geojson'),
-    path('api/subcounties/', farm_views.subcounty_geojson, name='subcounty_geojson'),
-    
-    # Farmer registration
-    path('farmer/register/', farm_views.farmer_register, name='farmer_register'),
-    path('farmer/<int:farmer_id>/', farm_views.farmer_detail, name='farmer_detail'),
-    
-    # Farm upload
-    path('farm/upload/', farm_views.farm_upload, name='farm_upload'),
-    path('farm/<str:farm_id>/', farm_views.farm_detail, name='farm_detail'),
-    
-    # Insurance
+    path('', RedirectView.as_view(url='/farms/', permanent=False)),
+    path('farms/', include('farms.urls')),
     path('insurance/', include('insurance.urls')),
-    
-    # Satellite analysis
-    path('satellite/analyze/', farm_views.satellite_analysis, name='satellite_analysis'),
-    path('satellite/results/<str:farm_id>/', farm_views.satellite_results, name='satellite_results'),
-    
-    # API
-    path('api/', include('farms.api_urls')),
 ]
 
-# Serve media files in development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
