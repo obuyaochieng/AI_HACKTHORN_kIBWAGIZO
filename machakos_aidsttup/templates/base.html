@@ -3,122 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Machakos Drought Insurance System{% endblock %}</title>
+    <title>{% block title %}Machakos AIDSTTUP - Drought Monitoring{% endblock %}</title>
     
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <!-- Custom CSS -->
     <style>
+        :root {
+            --primary-color: #2c7873;
+            --secondary-color: #6fb3b8;
+            --accent-color: #ff7f50;
+            --light-bg: #f8f9fa;
+            --dark-text: #343a40;
+        }
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
         }
+        
         .navbar-brand {
-            font-weight: bold;
-            color: #2c3e50 !important;
+            font-weight: 700;
+            color: var(--primary-color) !important;
         }
+        
         .sidebar {
+            background: linear-gradient(180deg, #2c7873 0%, #204e4a 100%);
+            color: white;
             min-height: 100vh;
-            background: linear-gradient(180deg, #2c3e50 0%, #3498db 100%);
-            color: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
         }
-        .sidebar a {
-            color: white;
-            text-decoration: none;
-            padding: 10px 15px;
-            display: block;
-            border-radius: 5px;
+        
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 12px 20px;
             margin: 5px 0;
+            border-radius: 8px;
+            transition: all 0.3s;
         }
-        .sidebar a:hover {
+        
+        .sidebar .nav-link:hover {
             background-color: rgba(255,255,255,0.1);
-        }
-        .sidebar a.active {
-            background-color: rgba(255,255,255,0.2);
-        }
-        .stat-card {
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
             color: white;
         }
-        .stat-card i {
-            font-size: 2.5rem;
+        
+        .sidebar .nav-link.active {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        
+        .card {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 2px solid var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .risk-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        
+        .risk-low { background-color: #d4edda; color: #155724; }
+        .risk-moderate { background-color: #fff3cd; color: #856404; }
+        .risk-severe { background-color: #f8d7da; color: #721c24; }
+        
+        #map {
+            height: 600px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .legend {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .index-card {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
             margin-bottom: 15px;
         }
-        .alert-badge {
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            padding: 5px 10px;
-            border-radius: 50%;
-            font-size: 0.8rem;
+        
+        .index-value {
+            font-size: 2rem;
+            font-weight: 700;
         }
+        
         .farm-marker {
-            border: 2px solid #fff;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
-            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
-        .drought-severe { color: #dc3545; }
-        .drought-high { color: #fd7e14; }
-        .drought-moderate { color: #ffc107; }
-        .drought-low { color: #28a745; }
     </style>
+    
     {% block extra_css %}{% endblock %}
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'home' %}">
-                <i class="fas fa-tractor"></i> Machakos AIDSTTUP
+            <a class="navbar-brand" href="{% url 'map_viewer' %}">
+                <i class="fas fa-tractor me-2"></i>
+                Machakos AIDSTTUP
             </a>
+            
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'dashboard' %}">
-                                <i class="fas fa-tachometer-alt"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'map_viewer' %}">
-                                <i class="fas fa-map"></i> Map
-                            </a>
-                        </li>
-                        {% if user.is_staff %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="/admin/">
-                                <i class="fas fa-cog"></i> Admin
-                            </a>
-                        </li>
-                        {% endif %}
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-user"></i> {{ user.username }}
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user me-1"></i> {{ user.username }}
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-user-cog"></i> Profile</a></li>
+                                {% if user.is_staff %}
+                                    <li><a class="dropdown-item" href="{% url 'admin:index' %}">
+                                        <i class="fas fa-cog me-2"></i>Admin Panel
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'dashboard' %}">
+                                        <i class="fas fa-chart-line me-2"></i>Dashboard
+                                    </a></li>
+                                {% endif %}
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                                <li><a class="dropdown-item" href="{% url 'logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                </a></li>
                             </ul>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">
-                                <i class="fas fa-sign-in-alt"></i> Login
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'farmer_register' %}">
-                                <i class="fas fa-user-plus"></i> Register
+                            <a class="btn btn-outline-primary" href="{% url 'login' %}">
+                                <i class="fas fa-sign-in-alt me-1"></i> Login
                             </a>
                         </li>
                     {% endif %}
@@ -126,127 +177,263 @@
             </div>
         </div>
     </nav>
-
+    
+    <!-- Main Content -->
     <div class="container-fluid">
         <div class="row">
-            <!-- Sidebar (only for authenticated users) -->
+            <!-- Sidebar -->
             {% if user.is_authenticated %}
-            <div class="col-md-2 d-none d-md-block sidebar p-3">
-                <h4 class="text-center mb-4">
-                    <i class="fas fa-tractor"></i> Navigation
-                </h4>
-                
-                <div class="list-group list-group-flush">
-                    <a href="{% url 'dashboard' %}" class="list-group-item list-group-item-action bg-transparent {% if request.path == '/dashboard/' %}active{% endif %}">
-                        <i class="fas fa-tachometer-alt me-2"></i> Dashboard
-                    </a>
-                    <a href="{% url 'map_viewer' %}" class="list-group-item list-group-item-action bg-transparent {% if request.path == '/map/' %}active{% endif %}">
-                        <i class="fas fa-map me-2"></i> Map Viewer
-                    </a>
-                    <a href="{% url 'farmer_register' %}" class="list-group-item list-group-item-action bg-transparent {% if request.path == '/farmer/register/' %}active{% endif %}">
-                        <i class="fas fa-user-plus me-2"></i> Register Farmer
-                    </a>
-                    <a href="{% url 'farm_upload' %}" class="list-group-item list-group-item-action bg-transparent {% if request.path == '/farm/upload/' %}active{% endif %}">
-                        <i class="fas fa-upload me-2"></i> Upload Farm
-                    </a>
-                    <a href="{% url 'satellite_analysis' %}" class="list-group-item list-group-item-action bg-transparent {% if request.path == '/satellite/analyze/' %}active{% endif %}">
-                        <i class="fas fa-satellite me-2"></i> Satellite Analysis
-                    </a>
+            <div class="col-lg-2 col-md-3 sidebar d-none d-md-block">
+                <div class="pt-4">
+                    <h5 class="text-center mb-4">
+                        <i class="fas fa-map-marked-alt me-2"></i>Navigation
+                    </h5>
                     
-                    <hr class="bg-light">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.path == '/farms/' %}active{% endif %}" 
+                               href="{% url 'map_viewer' %}">
+                                <i class="fas fa-map me-2"></i> Farm Map
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'dashboard' in request.path %}active{% endif %}" 
+                               href="{% url 'dashboard' %}">
+                                <i class="fas fa-chart-bar me-2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'analysis' in request.path %}active{% endif %}" 
+                               href="{% url 'satellite_analysis' %}">
+                                <i class="fas fa-satellite me-2"></i> Satellite Analysis
+                            </a>
+                        </li>
+                        
+                        {% if user.is_staff %}
+                        <li class="nav-item mt-4">
+                            <small class="text-uppercase text-muted">Admin Tools</small>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'import_shapefiles' %}">
+                                <i class="fas fa-file-import me-2"></i> Import Data
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'admin:farms_farm_changelist' %}">
+                                <i class="fas fa-edit me-2"></i> Manage Farms
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'admin:insurance_insuranceclaim_changelist' %}">
+                                <i class="fas fa-file-invoice-dollar me-2"></i> Insurance Claims
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        <li class="nav-item mt-4">
+                            <small class="text-uppercase text-muted">Quick Actions</small>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" onclick="runAnalysis()">
+                                <i class="fas fa-play-circle me-2"></i> Run Analysis
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" onclick="exportData()">
+                                <i class="fas fa-download me-2"></i> Export Data
+                            </button>
+                        </li>
+                    </ul>
                     
-                    <h6 class="mt-3 mb-2">Insurance</h6>
-                    <a href="{% url 'policy_list' %}" class="list-group-item list-group-item-action bg-transparent">
-                        <i class="fas fa-file-contract me-2"></i> Policies
-                    </a>
-                    <a href="{% url 'claim_list' %}" class="list-group-item list-group-item-action bg-transparent">
-                        <i class="fas fa-hand-holding-usd me-2"></i> Claims
-                    </a>
-                    <a href="{% url 'insurance_dashboard' %}" class="list-group-item list-group-item-action bg-transparent">
-                        <i class="fas fa-chart-line me-2"></i> Insurance Dashboard
-                    </a>
-                </div>
-                
-                <div class="mt-5">
-                    <h6>Quick Stats</h6>
-                    <small>
-                        <i class="fas fa-tractor me-1"></i> Farms: <strong id="farm-count">0</strong><br>
-                        <i class="fas fa-users me-1"></i> Farmers: <strong id="farmer-count">0</strong><br>
-                        <i class="fas fa-exclamation-triangle me-1"></i> Alerts: <strong id="alert-count">0</strong>
-                    </small>
+                    <div class="mt-5 p-3" style="background: rgba(255,255,255,0.1); border-radius: 8px;">
+                        <small class="d-block">Last Updated</small>
+                        <div id="last-updated">Just now</div>
+                        
+                        <div class="mt-3">
+                            <small class="d-block">System Status</small>
+                            <div class="d-flex align-items-center">
+                                <div id="gee-status" class="badge bg-success me-2">GEE: Connected</div>
+                                <div id="api-status" class="badge bg-success">API: Online</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             {% endif %}
-
-            <!-- Main content -->
-            <div class="{% if user.is_authenticated %}col-md-10{% else %}col-12{% endif %}">
-                <div class="container-fluid mt-3">
-                    <!-- Messages -->
+            
+            <!-- Main Content Area -->
+            <div class="{% if user.is_authenticated %}col-lg-10 col-md-9{% else %}col-12{% endif %}">
+                <div class="p-4">
                     {% if messages %}
-                    <div class="messages">
                         {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
                         {% endfor %}
-                    </div>
                     {% endif %}
-
-                    <!-- Page title -->
-                    <div class="row mb-4">
-                        <div class="col">
-                            <h2>{% block page_title %}{% endblock %}</h2>
-                            <nav aria-label="breadcrumb">
-                                <ol class="breadcrumb">
-                                    <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
-                                    {% block breadcrumbs %}{% endblock %}
-                                </ol>
-                            </nav>
-                        </div>
-                    </div>
-
-                    <!-- Main content block -->
-                    {% block content %}{% endblock %}
+                    
+                    {% block content %}
+                    <!-- Page content goes here -->
+                    {% endblock %}
                 </div>
             </div>
         </div>
     </div>
-
+    
     <!-- Footer -->
-    <footer class="bg-dark text-white mt-5 py-3">
+    <footer class="bg-dark text-white py-4 mt-5">
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
                     <h5>Machakos AIDSTTUP</h5>
-                    <p>Drought Early Warning & Insurance System for Machakos County Farmers</p>
+                    <p class="mb-0">AI for Drought Smart Technology for The Up Project</p>
+                    <small>© {% now "Y" %} - All rights reserved</small>
                 </div>
-                <div class="col-md-6 text-end">
-                    <p>&copy; 2025 Machakos County. All rights reserved.</p>
-                    <p>Contact: info@machakos-drought.co.ke | Phone: +254 700 000 000</p>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-1">Powered by:</p>
+                    <div class="d-flex justify-content-md-end gap-3">
+                        <span class="badge bg-secondary">Django</span>
+                        <span class="badge bg-secondary">Google Earth Engine</span>
+                        <span class="badge bg-secondary">PostgreSQL/PostGIS</span>
+                        <span class="badge bg-secondary">Leaflet</span>
+                    </div>
+                    <p class="mt-2 mb-0">
+                        <small>Data Sources: Sentinel-2, CHIRPS, Machakos County GIS</small>
+                    </p>
                 </div>
             </div>
         </div>
     </footer>
-
-    <!-- JavaScript Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Custom Scripts -->
+    <!-- CSRF Token for AJAX -->
     <script>
-        // Update quick stats
-        $(document).ready(function() {
-            $.getJSON('/api/farms/', function(data) {
-                $('#farm-count').text(data.features.length || 0);
-            });
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        const csrftoken = getCookie('csrftoken');
+    </script>
+    
+    <!-- Utility Functions -->
+    <script>
+        function showLoading(message = 'Processing...') {
+            // Create loading overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'loading-overlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.7);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+                color: white;
+                font-size: 1.2rem;
+            `;
+            overlay.innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border mb-3" role="status"></div>
+                    <div>${message}</div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+        }
+        
+        function hideLoading() {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) overlay.remove();
+        }
+        
+        function showToast(message, type = 'success') {
+            const toastContainer = document.getElementById('toast-container') || (() => {
+                const container = document.createElement('div');
+                container.id = 'toast-container';
+                container.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    z-index: 9999;
+                `;
+                document.body.appendChild(container);
+                return container;
+            })();
             
-            // Load other stats via AJAX if needed
-        });
+            const toastId = 'toast-' + Date.now();
+            const toast = document.createElement('div');
+            toast.id = toastId;
+            toast.className = `toast align-items-center text-white bg-${type} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="document.getElementById('${toastId}').remove()"></button>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (document.getElementById(toastId)) {
+                    document.getElementById(toastId).remove();
+                }
+            }, 5000);
+        }
+        
+        async function makeRequest(url, method = 'GET', data = null) {
+            const options = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                }
+            };
+            
+            if (data) {
+                options.body = JSON.stringify(data);
+            }
+            
+            try {
+                const response = await fetch(url, options);
+                return await response.json();
+            } catch (error) {
+                console.error('Request failed:', error);
+                showToast('Request failed: ' + error.message, 'danger');
+                return { success: false, error: error.message };
+            }
+        }
+        
+        function updateLastUpdated() {
+            const now = new Date();
+            document.getElementById('last-updated').textContent = 
+                now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+        
+        // Update time every minute
+        setInterval(updateLastUpdated, 60000);
+        updateLastUpdated();
     </script>
     
     {% block extra_js %}{% endblock %}
