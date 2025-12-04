@@ -114,4 +114,4 @@ class InsuranceClaim(models.Model):
     @property
     def days_since_submission(self):
         from datetime import datetime
-        return (datetime.now().date() - self.claim_date.date()).daysgit init
+        return (datetime.now().date() - self.claim_date.date()).days
