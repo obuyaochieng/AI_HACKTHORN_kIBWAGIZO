@@ -1,0 +1,746 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Machakos AIDSTTUP{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        text-align: center;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        color: white;
+        transition: transform 0.3s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stat-card .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+    
+    .stat-card .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .stat-card .stat-icon {
+        font-size: 2rem;
+        margin-bottom: 15px;
+    }
+    
+    .card-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .card-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .card-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    .card-4 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+    .card-5 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+    .card-6 { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); }
+    
+    .risk-chart-container {
+        position: relative;
+        height: 300px;
+    }
+    
+    .claim-item {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        transition: background-color 0.2s;
+    }
+    
+    .claim-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .claim-status {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .status-pending { background-color: #fff3cd; color: #856404; }
+    .status-approved { background-color: #d4edda; color: #155724; }
+    .status-paid { background-color: #cce5ff; color: #004085; }
+    .status-rejected { background-color: #f8d7da; color: #721c24; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-chart-line text-primary me-2"></i>
+            Insurance Dashboard
+        </h1>
+        <p class="text-muted mb-0">
+            Monitor drought risk, insurance triggers, and claims across Machakos County
+        </p>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="stat-card card-1">
+            <div class="stat-icon">
+                <i class="fas fa-tractor"></i>
+            </div>
+            <div class="stat-value">{{ total_farms }}</div>
+            <div class="stat-label">Total Farms</div>
+        </div>
+    </div>
+    
+    <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="stat-card card-2">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-value">{{ total_farmers }}</div>
+            <div class="stat-label">Registered Farmers</div>
+        </div>
+    </div>
+    
+    <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="stat-card card-3">
+            <div class="stat-icon">
+                <i class="fas fa-map-marked-alt"></i>
+            </div>
+            <div class="stat-value">{{ total_area|floatformat:0 }}</div>
+            <div class="stat-label">Hectares Covered</div>
+        </div>
+    </div>
+    
+    <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="stat-card card-4">
+            <div class="stat-icon">
+                <i class="fas fa-file-contract"></i>
+            </div>
+            <div class="stat-value">{{ active_policies }}</div>
+            <div class="stat-label">Active Policies</div>
+        </div>
+    </div>
+    
+    <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="stat-card card-5">
+            <div class="stat-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="stat-value">{{ pending_claims }}</div>
+            <div class="stat-label">Pending Claims</div>
+        </div>
+    </div>
+    
+    <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="stat-card card-6">
+            <div class="stat-icon">
+                <i class="fas fa-money-bill-wave"></i>
+            </div>
+            <div class="stat-value">KES {{ total_payout|floatformat:0 }}</div>
+            <div class="stat-label">Total Payout</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Left Column: Charts and Risk Distribution -->
+    <div class="col-lg-8">
+        <!-- Risk Distribution -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Drought Risk Distribution
+                </div>
+                <select class="form-select form-select-sm w-auto" id="risk-time-filter">
+                    <option value="30">Last 30 Days</option>
+                    <option value="90">Last 90 Days</option>
+                    <option value="365">Last Year</option>
+                    <option value="all">All Time</option>
+                </select>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="risk-chart-container">
+                            <canvas id="riskChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mt-4 mt-md-0">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="index-indicator" style="background-color: #28a745;"></div>
+                                <div class="ms-2">
+                                    <div class="fw-bold">Low Risk</div>
+                                    <div class="text-muted">{{ risk_counts.low }} farms</div>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="index-indicator" style="background-color: #ffc107;"></div>
+                                <div class="ms-2">
+                                    <div class="fw-bold">Moderate Risk</div>
+                                    <div class="text-muted">{{ risk_counts.moderate }} farms</div>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="index-indicator" style="background-color: #dc3545;"></div>
+                                <div class="ms-2">
+                                    <div class="fw-bold">Severe Risk</div>
+                                    <div class="text-muted">{{ risk_counts.severe }} farms</div>
+                                </div>
+                            </div>
+                            <div class="alert alert-warning mt-4">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>{{ risk_counts.severe }} farms</strong> require immediate attention
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- High Risk Farms -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                High Risk Farms Requiring Attention
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Farm ID</th>
+                                <th>Farm Name</th>
+                                <th>Farmer</th>
+                                <th>Subcounty</th>
+                                <th>Last NDVI</th>
+                                <th>Days Since Analysis</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for farm in high_risk_farms %}
+                            <tr>
+                                <td>{{ farm.farm_id }}</td>
+                                <td>{{ farm.name|default:"Unnamed" }}</td>
+                                <td>{{ farm.farmer.full_name|default:"Unknown" }}</td>
+                                <td>{{ farm.county.subcounty|default:"Unknown" }}</td>
+                                <td>
+                                    {% with farm.analyses.first as latest %}
+                                    {% if latest %}
+                                        <span class="badge {% if latest.ndvi < 0.3 %}bg-danger{% elif latest.ndvi < 0.4 %}bg-warning{% else %}bg-success{% endif %}">
+                                            {{ latest.ndvi|floatformat:3|default:"N/A" }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">No Data</span>
+                                    {% endif %}
+                                    {% endwith %}
+                                </td>
+                                <td>
+                                    {% with farm.analyses.first as latest %}
+                                    {% if latest %}
+                                        {{ latest.analysis_date|timesince }}
+                                    {% else %}
+                                        Never
+                                    {% endif %}
+                                    {% endwith %}
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewFarm('{{ farm.farm_id }}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-success" onclick="analyzeFarm('{{ farm.farm_id }}')">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="triggerInsurance('{{ farm.farm_id }}')">
+                                        <i class="fas fa-file-invoice-dollar"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">
+                                    <i class="fas fa-check-circle fa-2x mb-3"></i>
+                                    <div>No high-risk farms at the moment. Great news!</div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Column: Recent Claims and Quick Actions -->
+    <div class="col-lg-4">
+        <!-- Recent Insurance Claims -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-file-invoice-dollar me-2"></i>
+                    Recent Insurance Claims
+                </div>
+                <span class="badge bg-primary">{{ total_claims }} total</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for claim in recent_claims %}
+                    <div class="claim-item">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <strong>{{ claim.claim_number }}</strong>
+                                <div class="small text-muted">{{ claim.farm.farm_id }}</div>
+                            </div>
+                            <span class="claim-status status-{{ claim.status }}">
+                                {{ claim.status|title }}
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-end">
+                            <div>
+                                <div class="small">Amount: KES {{ claim.claim_amount|floatformat:2 }}</div>
+                                <div class="small text-muted">{{ claim.trigger_date|date:"M d, Y" }}</div>
+                            </div>
+                            <div>
+                                {% if claim.status == 'pending' %}
+                                <button class="btn btn-sm btn-outline-primary" onclick="reviewClaim('{{ claim.id }}')">
+                                    Review
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fa-2x mb-3"></i>
+                        <div>No recent claims</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="card-footer text-center">
+                <a href="{% url 'admin:insurance_insuranceclaim_changelist' %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-list me-1"></i> View All Claims
+                </a>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-bolt me-2"></i>
+                Quick Actions
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" onclick="runBatchAnalysis()">
+                        <i class="fas fa-satellite me-2"></i>
+                        Run Batch Analysis
+                    </button>
+                    <button class="btn btn-success" onclick="exportAllData()">
+                        <i class="fas fa-download me-2"></i>
+                        Export All Data
+                    </button>
+                    <button class="btn btn-warning" onclick="checkAllInsurance()">
+                        <i class="fas fa-file-invoice-dollar me-2"></i>
+                        Check All Insurance
+                    </button>
+                    <button class="btn btn-info" onclick="generateMonthlyReport()">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Generate Monthly Report
+                    </button>
+                </div>
+                
+                <hr>
+                
+                <div class="mt-3">
+                    <h6 class="mb-3">System Status</h6>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>GEE Connection:</span>
+                        <span id="dashboard-gee-status" class="badge bg-success">Connected</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Database:</span>
+                        <span class="badge bg-success">Online</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Last Analysis Run:</span>
+                        <span id="last-analysis-time">Just now</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Insurance Summary -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-chart-bar me-2"></i>
+                Insurance Summary
+            </div>
+            <div class="card-body">
+                <canvas id="insuranceChart" height="200"></canvas>
+                <div class="mt-3 text-center">
+                    <div class="h4">KES {{ total_payout|floatformat:0 }}</div>
+                    <small class="text-muted">Total Payouts to Date</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Analysis Modal -->
+<div class="modal fade" id="analysisModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Run Batch Analysis</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Select Time Period</label>
+                    <select class="form-select" id="analysis-period">
+                        <option value="1">Last Month</option>
+                        <option value="3">Last 3 Months</option>
+                        <option value="6">Last 6 Months</option>
+                        <option value="12">Last Year</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Select Farms</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="farm-selection" id="all-farms" checked>
+                        <label class="form-check-label" for="all-farms">
+                            All Farms ({{ total_farms }})
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="farm-selection" id="high-risk-farms">
+                        <label class="form-check-label" for="high-risk-farms">
+                            High Risk Farms Only
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="farm-selection" id="custom-farms">
+                        <label class="form-check-label" for="custom-farms">
+                            Select Specific Farms
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="mb-3" id="custom-farms-select" style="display: none;">
+                    <label class="form-label">Select Farms</label>
+                    <select class="form-select" multiple size="5">
+                        {% for farm in farms|slice:":20" %}
+                        <option value="{{ farm.farm_id }}">{{ farm.farm_id }} - {{ farm.name|default:"Unnamed" }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    This will analyze selected farms using Google Earth Engine satellite data.
+                    Estimated time: <span id="estimated-time">2-5 minutes</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="startBatchAnalysis()">
+                    <i class="fas fa-play me-2"></i> Start Analysis
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize charts
+    document.addEventListener('DOMContentLoaded', function() {
+        initRiskChart();
+        initInsuranceChart();
+        updateLastAnalysisTime();
+        
+        // Check GEE status
+        checkDashboardGEEStatus();
+        
+        // Setup farm selection toggle
+        document.getElementById('custom-farms').addEventListener('change', function() {
+            document.getElementById('custom-farms-select').style.display = this.checked ? 'block' : 'none';
+        });
+        
+        document.getElementById('all-farms').addEventListener('change', function() {
+            document.getElementById('custom-farms-select').style.display = 'none';
+        });
+        
+        document.getElementById('high-risk-farms').addEventListener('change', function() {
+            document.getElementById('custom-farms-select').style.display = 'none';
+        });
+    });
+    
+    function initRiskChart() {
+        const ctx = document.getElementById('riskChart').getContext('2d');
+        
+        // Risk distribution data from Django context
+        const riskData = {
+            labels: ['Low Risk', 'Moderate Risk', 'Severe Risk'],
+            datasets: [{
+                data: [
+                    {{ risk_counts.low|default:0 }},
+                    {{ risk_counts.moderate|default:0 }},
+                    {{ risk_counts.severe|default:0 }}
+                ],
+                backgroundColor: [
+                    '#28a745',
+                    '#ffc107',
+                    '#dc3545'
+                ],
+                borderWidth: 1
+            }]
+        };
+        
+        window.riskChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: riskData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${label}: ${value} farms (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function initInsuranceChart() {
+        const ctx = document.getElementById('insuranceChart').getContext('2d');
+        
+        // Sample monthly claims data
+        const claimsData = {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+            datasets: [{
+                label: 'Claims Filed',
+                data: [3, 5, 2, 8, 4, 6, 7],
+                backgroundColor: 'rgba(44, 120, 115, 0.2)',
+                borderColor: 'rgb(44, 120, 115)',
+                borderWidth: 2,
+                tension: 0.4
+            }, {
+                label: 'Claims Paid',
+                data: [2, 4, 1, 6, 3, 5, 4],
+                backgroundColor: 'rgba(111, 179, 184, 0.2)',
+                borderColor: 'rgb(111, 179, 184)',
+                borderWidth: 2,
+                tension: 0.4
+            }]
+        };
+        
+        window.insuranceChart = new Chart(ctx, {
+            type: 'line',
+            data: claimsData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Claims'
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function checkDashboardGEEStatus() {
+        makeRequest('/farms/api/test-gee/').then(response => {
+            const statusElement = document.getElementById('dashboard-gee-status');
+            if (response.success) {
+                statusElement.className = 'badge bg-success';
+                statusElement.textContent = 'Connected';
+            } else {
+                statusElement.className = 'badge bg-danger';
+                statusElement.textContent = 'Offline';
+            }
+        });
+    }
+    
+    function updateLastAnalysisTime() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        document.getElementById('last-analysis-time').textContent = timeString + ' today';
+    }
+    
+    // Dashboard Functions
+    function runBatchAnalysis() {
+        const modal = new bootstrap.Modal(document.getElementById('analysisModal'));
+        modal.show();
+    }
+    
+    function startBatchAnalysis() {
+        const period = document.getElementById('analysis-period').value;
+        const farmSelection = document.querySelector('input[name="farm-selection"]:checked').id;
+        
+        showLoading('Starting batch analysis...');
+        
+        // Close modal
+        bootstrap.Modal.getInstance(document.getElementById('analysisModal')).hide();
+        
+        // Simulate analysis progress
+        simulateAnalysisProgress();
+        
+        // In real implementation, this would call the API
+        setTimeout(() => {
+            hideLoading();
+            showToast('Batch analysis completed successfully!', 'success');
+            updateLastAnalysisTime();
+        }, 3000);
+    }
+    
+    function simulateAnalysisProgress() {
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 10;
+            showLoading(`Analyzing... ${progress}% complete`);
+            
+            if (progress >= 100) {
+                clearInterval(interval);
+            }
+        }, 300);
+    }
+    
+    function exportAllData() {
+        showLoading('Preparing data export...');
+        
+        // In real implementation, this would generate and download files
+        setTimeout(() => {
+            hideLoading();
+            showToast('Data export completed. Download will start shortly.', 'success');
+            
+            // Simulate download
+            const link = document.createElement('a');
+            link.href = '#';
+            link.download = 'machakos_farm_data_' + new Date().toISOString().split('T')[0] + '.zip';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }, 2000);
+    }
+    
+    function checkAllInsurance() {
+        showLoading('Checking insurance triggers for all farms...');
+        
+        makeRequest('/farms/api/run-analysis/', 'POST', {
+            farm_ids: 'all',
+            check_insurance: true
+        }).then(response => {
+            hideLoading();
+            
+            if (response.success) {
+                const triggered = response.results?.filter(r => r.insurance_triggered).length || 0;
+                showToast(`Insurance check complete. ${triggered} farms require attention.`, 'success');
+            } else {
+                showToast('Insurance check failed: ' + response.error, 'danger');
+            }
+        });
+    }
+    
+    function generateMonthlyReport() {
+        showLoading('Generating monthly report...');
+        
+        // In real implementation, this would generate a PDF report
+        setTimeout(() => {
+            hideLoading();
+            showToast('Monthly report generated successfully!', 'success');
+            
+            // Open report in new window
+            window.open('#', '_blank');
+        }, 2500);
+    }
+    
+    function viewFarm(farmId) {
+        window.location.href = `/farms/?farm=${farmId}`;
+    }
+    
+    function analyzeFarm(farmId) {
+        showLoading('Analyzing farm ' + farmId + '...');
+        
+        makeRequest('/farms/api/run-analysis/', 'POST', {
+            farm_ids: [farmId],
+            year: new Date().getFullYear(),
+            month: new Date().getMonth() + 1
+        }).then(response => {
+            hideLoading();
+            
+            if (response.success) {
+                showToast('Analysis completed for farm ' + farmId, 'success');
+            } else {
+                showToast('Analysis failed: ' + response.error, 'danger');
+            }
+        });
+    }
+    
+    function triggerInsurance(farmId) {
+        showLoading('Checking insurance for farm ' + farmId + '...');
+        
+        makeRequest('/farms/api/trigger-insurance/', 'POST', {
+            farm_id: farmId
+        }).then(response => {
+            hideLoading();
+            
+            if (response.success) {
+                if (response.claim_created) {
+                    showToast(`Insurance claim created: ${response.claim_number}`, 'success');
+                } else {
+                    showToast(response.message, 'info');
+                }
+            } else {
+                showToast('Insurance check failed: ' + response.error, 'danger');
+            }
+        });
+    }
+    
+    function reviewClaim(claimId) {
+        // Redirect to admin claim detail page
+        window.open(`/admin/insurance/insuranceclaim/${claimId}/change/`, '_blank');
+    }
+    
+    // Update time filter
+    document.getElementById('risk-time-filter').addEventListener('change', function() {
+        showLoading('Loading risk data for selected period...');
+        
+        // In real implementation, this would fetch new data
+        setTimeout(() => {
+            hideLoading();
+            showToast('Risk data updated for ' + this.value + ' days', 'info');
+        }, 1000);
+    });
+</script>
+{% endblock %}
