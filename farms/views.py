@@ -10,6 +10,8 @@ from datetime import datetime, timedelta
 
 from .models import Farm, Farmer, County, SatelliteAnalysis, InsurancePolicy, InsuranceClaim
 from .utils.gee_utils import GEEAnalyzer, ShapefileProcessor, test_gee_connection
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.decorators.csrf import csrf_exempt
 
 
 class MapView(TemplateView):
@@ -400,3 +402,281 @@ def test_gee_api(request):
         'message': 'GEE connection test completed',
         'timestamp': datetime.now().isoformat(),
     })
+
+
+
+
+class FarmListView(LoginRequiredMixin, ListView):
+    """List all farms"""
+    model = Farm
+    template_name = 'farms/farm_list.html'
+    context_object_name = 'farms'
+    paginate_by = 20
+    
+    def get_queryset(self):
+        queryset = Farm.objects.filter(is_active=True).select_related('farmer', 'county')
+        
+        # Filter by search query
+        search = self.request.GET.get('search', '')
+        if search:
+            queryset = queryset.filter(
+                Q(farm_id__icontains=search) |
+                Q(name__icontains=search) |
+                Q(farmer__first_name__icontains=search) |
+                Q(farmer__last_name__icontains=search) |
+                Q(crop_type__icontains=search)
+            )
+        
+        # Filter by crop type
+        crop_type = self.request.GET.get('crop_type', '')
+        if crop_type:
+            queryset = queryset.filter(crop_type=crop_type)
+        
+        # Filter by risk level
+        risk_level = self.request.GET.get('risk_level', '')
+        if risk_level:
+            queryset = queryset.filter(
+                analyses__drought_risk_level=risk_level,
+                analyses__analysis_date__gte=datetime.now() - timedelta(days=30)
+            ).distinct()
+        
+        # Filter by subcounty
+        subcounty = self.request.GET.get('subcounty', '')
+        if subcounty:
+            queryset = queryset.filter(county__subcounty__icontains=subcounty)
+        
+        return queryset.order_by('farm_id')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Add filter options to context
+        context['crop_types'] = Farm.objects.values_list('crop_type', flat=True).distinct()
+        context['subcounties'] = County.objects.values_list('subcounty', flat=True).distinct()
+        context['search_query'] = self.request.GET.get('search', '')
+        context['selected_crop'] = self.request.GET.get('crop_type', '')
+        context['selected_risk'] = self.request.GET.get('risk_level', '')
+        context['selected_subcounty'] = self.request.GET.get('subcounty', '')
+        
+        return context
+
+
+class FarmDetailView(LoginRequiredMixin, DetailView):
+    """View farm details"""
+    model = Farm
+    template_name = 'farms/farm_detail.html'
+    context_object_name = 'farm'
+    
+    def get_object(self, queryset=None):
+        # Get farm by ID or farm_id
+        if 'pk' in self.kwargs:
+            return super().get_object(queryset)
+        elif 'farm_id' in self.kwargs:
+            return get_object_or_404(Farm, farm_id=self.kwargs['farm_id'])
+        return super().get_object(queryset)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        farm = self.object
+        
+        # Get analysis history
+        analyses = farm.analyses.all().order_by('-analysis_date')[:12]
+        
+        # Calculate statistics
+        if analyses.exists():
+            latest = analyses.first()
+            context.update({
+                'latest_analysis': latest,
+                'analyses': analyses,
+                'ndvi_trend': self.calculate_trend(analyses, 'ndvi'),
+                'rainfall_trend': self.calculate_trend(analyses, 'rainfall_mm'),
+                'risk_history': [
+                    {'date': a.analysis_date, 'risk': a.drought_risk_level}
+                    for a in analyses[:6]
+                ]
+            })
+        
+        # Get insurance info
+        try:
+            context['insurance_policy'] = farm.insurance_policy
+        except:
+            context['insurance_policy'] = None
+        
+        # Get claims
+        context['claims'] = farm.claims.all().order_by('-trigger_date')[:5]
+        
+        return context
+    
+    def calculate_trend(self, analyses, field):
+        """Calculate trend for a field"""
+        if analyses.count() < 2:
+            return 'stable'
+        
+        values = [getattr(a, field) for a in analyses if getattr(a, field) is not None]
+        if len(values) < 2:
+            return 'stable'
+        
+        if values[0] > values[-1] * 1.1:
+            return 'improving'
+        elif values[0] < values[-1] * 0.9:
+            return 'declining'
+        else:
+            return 'stable'
+        
+
+
+@csrf_exempt
+def gee_tile_url(request):
+    """Generate GEE tile URL for map display"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            index = data.get('index', 'NDVI')
+            year = data.get('year', datetime.now().year)
+            month = data.get('month', datetime.now().month)
+            
+            # For now, return a placeholder URL
+            # In production, this would generate actual GEE tile URLs
+            return JsonResponse({
+                'success': True,
+                'index': index,
+                'year': year,
+                'month': month,
+                'tile_url': f'/static/images/placeholder_{index.lower()}.png',
+                'message': 'Tile URL generated (placeholder)'
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=500)
+    
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+@csrf_exempt
+def run_batch_analysis(request):
+    """Run batch analysis for multiple farms"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            farm_ids = data.get('farm_ids', [])
+            year = data.get('year', datetime.now().year)
+            month = data.get('month', datetime.now().month)
+            
+            if not farm_ids:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'No farm IDs provided'
+                }, status=400)
+            
+            results = []
+            
+            for farm_id in farm_ids[:10]:  # Limit to 10 for demo
+                try:
+                    farm = Farm.objects.get(farm_id=farm_id)
+                    
+                    # Simulate analysis (replace with actual GEE analysis)
+                    analysis = SatelliteAnalysis(
+                        farm=farm,
+                        analysis_date=datetime(year, month, 1),
+                        year=year,
+                        month=month,
+                        ndvi=0.3 + (hash(farm_id) % 100) / 500,
+                        ndmi=0.2 + (hash(farm_id) % 100) / 600,
+                        savi=0.4 + (hash(farm_id) % 100) / 400,
+                        rainfall_mm=50 + (hash(farm_id) % 100),
+                        image_count=3
+                    )
+                    analysis.save()
+                    
+                    results.append({
+                        'farm_id': farm_id,
+                        'success': True,
+                        'analysis_id': analysis.id,
+                        'ndvi': analysis.ndvi,
+                        'risk_level': analysis.drought_risk_level
+                    })
+                    
+                except Farm.DoesNotExist:
+                    results.append({
+                        'farm_id': farm_id,
+                        'success': False,
+                        'error': 'Farm not found'
+                    })
+            
+            return JsonResponse({
+                'success': True,
+                'results': results,
+                'total': len(results),
+                'completed': len([r for r in results if r['success']])
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=500)
+    
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+def get_machakos_boundary(request):
+    """Get Machakos County boundary as GeoJSON"""
+    try:
+        # Sample GeoJSON for Machakos County
+        sample_geojson = {
+            'type': 'FeatureCollection',
+            'features': [{
+                'type': 'Feature',
+                'geometry': {
+                    'type': 'Polygon',
+                    'coordinates': [[
+                        [37.0, -1.3],
+                        [37.5, -1.3],
+                        [37.5, -1.8],
+                        [37.0, -1.8],
+                        [37.0, -1.3]
+                    ]]
+                },
+                'properties': {
+                    'name': 'Machakos County',
+                    'county': 'Machakos'
+                }
+            }]
+        }
+        
+        return JsonResponse(sample_geojson, safe=False)
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@csrf_exempt
+def export_analysis_data(request):
+    """Export analysis data to various formats"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            format_type = data.get('format', 'csv')
+            farm_ids = data.get('farm_ids', [])
+            
+            # For now, return a success message
+            # In production, this would generate actual files
+            return JsonResponse({
+                'success': True,
+                'message': f'Export started for {len(farm_ids)} farms in {format_type.upper()} format',
+                'download_url': '/static/exports/sample_export.csv'
+            })
+                
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=500)
+    
+    return JsonResponse({'error': 'Method not allowed'}, status=405)

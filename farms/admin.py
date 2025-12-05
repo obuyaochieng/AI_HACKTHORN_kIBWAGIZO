@@ -1,11 +1,11 @@
+# farms/admin.py
 from django.contrib import admin
-from django.contrib.gis.admin import OSMGeoAdmin
-from leaflet.admin import LeafletGeoAdmin
+# from leaflet.admin import LeafletGeoAdmin  # REMOVE THIS
 from .models import County, Farmer, Farm, SatelliteAnalysis, InsurancePolicy, InsuranceClaim
 
 
 @admin.register(County)
-class CountyAdmin(LeafletGeoAdmin):
+class CountyAdmin(admin.ModelAdmin):
     list_display = ('county', 'subcounty', 'county_code', 'subcounty_code')
     list_filter = ('county',)
     search_fields = ('county', 'subcounty')
@@ -21,18 +21,20 @@ class FarmerAdmin(admin.ModelAdmin):
 
 
 @admin.register(Farm)
-class FarmAdmin(LeafletGeoAdmin):
+class FarmAdmin(admin.ModelAdmin):
     list_display = ('farm_id', 'name', 'farmer', 'crop_type', 'area_ha', 'is_active')
     list_filter = ('crop_type', 'is_active', 'county', 'irrigation')
     search_fields = ('farm_id', 'name', 'farmer__first_name', 'farmer__last_name')
     ordering = ('farm_id',)
     
-    # Make geometry fields editable on map
-    settings_overrides = {
-        'DEFAULT_CENTER': (-1.5167, 37.2667),  # Machakos center
-        'DEFAULT_ZOOM': 10,
-    }
+    # Remove Leaflet-specific settings
+    # settings_overrides = {
+    #     'DEFAULT_CENTER': (-1.5167, 37.2667),
+    #     'DEFAULT_ZOOM': 10,
+    # }
 
+
+# Keep the rest of admin.py the same...
 
 @admin.register(SatelliteAnalysis)
 class SatelliteAnalysisAdmin(admin.ModelAdmin):

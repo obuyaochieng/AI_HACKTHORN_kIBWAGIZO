@@ -13,7 +13,7 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-default-key-change-me')
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-heqs#-g%ub7)*#0$uo6bj6ct_dznrpvwnkdwz)#tm3j2^i^q2@')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
@@ -28,12 +28,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.gis',  # GeoDjango
+
     'corsheaders',
     'rest_framework',
-    'leaflet',
+    #'leaflet',
     'farms',
-    'insurance',
+    #'insurance',
 ]
 
 MIDDLEWARE = [
@@ -71,14 +71,27 @@ WSGI_APPLICATION = 'machakos_aidsttup.wsgi.application'
 # Use PostgreSQL with PostGIS for geospatial data
 DATABASES = {
     'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DB_NAME', 'machakos_drought'),
-        'USER': os.getenv('DB_USER', 'machakos_user'),
+        'USER': os.getenv('DB_USER', 'postgres'),
         'PASSWORD': os.getenv('DB_PASSWORD', ''),
         'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
+
+
+
+
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = '/farms/'
+LOGOUT_REDIRECT_URL = '/'
+
+# Session settings
+SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
+SESSION_SAVE_EVERY_REQUEST = True
+
+
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -110,7 +123,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Media files (Uploaded shapefiles, farm polygons)
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-
+'''
 # Leaflet configuration
 LEAFLET_CONFIG = {
     'DEFAULT_CENTER': (-1.5167, 37.2667),  # Machakos center
@@ -120,7 +133,7 @@ LEAFLET_CONFIG = {
     'ATTRIBUTION_PREFIX': 'Machakos AIDSTTUP',
     'SCALE': 'metric',
     'RESET_VIEW': False,
-}
+}'''
 
 # GEE Configuration
 GEE_PROJECT_ID = os.getenv('GEE_PROJECT_ID')

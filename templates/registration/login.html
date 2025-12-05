@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - Machakos AIDSTTUP{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg mt-5">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-sign-in-alt me-2"></i>
+                        Login to Machakos AIDSTTUP
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Your username and password didn't match. Please try again.
+                    </div>
+                    {% endif %}
+                    
+                    {% if next %}
+                        {% if user.is_authenticated %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            Your account doesn't have access to this page. To proceed,
+                            please login with an account that has access.
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Please login to access this page.
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                    
+                    <form method="post" action="{% url 'login' %}">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="id_username" class="form-label">
+                                <i class="fas fa-user me-2"></i>Username
+                            </label>
+                            <input type="text" name="username" id="id_username" 
+                                   class="form-control form-control-lg" 
+                                   placeholder="Enter your username" required autofocus>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="id_password" class="form-label">
+                                <i class="fas fa-lock me-2"></i>Password
+                            </label>
+                            <input type="password" name="password" id="id_password" 
+                                   class="form-control form-control-lg" 
+                                   placeholder="Enter your password" required>
+                        </div>
+                        
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-sign-in-alt me-2"></i> Login
+                            </button>
+                        </div>
+                        
+                        <input type="hidden" name="next" value="{{ next }}">
+                    </form>
+                    
+                    <div class="text-center mt-4">
+                        <p class="text-muted mb-2">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Demo Credentials:
+                        </p>
+                        <div class="alert alert-light border">
+                            <div class="row">
+                                <div class="col-6">
+                                    <strong>Admin:</strong><br>
+                                    <small>Username: admin</small><br>
+                                    <small>Password: admin123</small>
+                                </div>
+                                <div class="col-6">
+                                    <strong>Farmer:</strong><br>
+                                    <small>Username: farmer1</small><br>
+                                    <small>Password: farmer123</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="text-center">
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-shield-alt me-2"></i>
+                            Secure login powered by Django Authentication
+                        </p>
+                    </div>
+                </div>
+                <div class="card-footer text-center bg-light">
+                    <small class="text-muted">
+                        © {% now "Y" %} Machakos AIDSTTUP - AI for Drought Smart Technology
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

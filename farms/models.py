@@ -1,8 +1,10 @@
-from django.contrib.gis.db import models
+# farms/models.py
+from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 import os
 from django.conf import settings
+import json
 
 class County(models.Model):
     """Machakos County boundary and sub-counties"""
@@ -12,8 +14,13 @@ class County(models.Model):
     county_code = models.CharField(max_length=50, unique=True)
     subcounty = models.CharField(max_length=100)
     subcounty_code = models.CharField(max_length=50, unique=True)
-    geometry = models.MultiPolygonField(srid=4326)
-    centroid = models.PointField(srid=4326, null=True, blank=True)
+    
+    # Store geometry as GeoJSON text (instead of GeometryField)
+    geometry_geojson = models.TextField(blank=True, null=True)
+    
+    # Store coordinates separately for map display
+    centroid_lat = models.FloatField(null=True, blank=True)
+    centroid_lng = models.FloatField(null=True, blank=True)
     
     # Analysis parameters
     avg_rainfall = models.FloatField(null=True, blank=True, help_text="Average annual rainfall in mm")
@@ -27,11 +34,12 @@ class County(models.Model):
     def __str__(self):
         return f"{self.county} - {self.subcounty}"
     
-    def save(self, *args, **kwargs):
-        # Auto-calculate centroid if not provided
-        if self.geometry and not self.centroid:
-            self.centroid = self.geometry.centroid
-        super().save(*args, **kwargs)
+    @property
+    def centroid(self):
+        """Return centroid as dictionary for map display"""
+        if self.centroid_lat and self.centroid_lng:
+            return {'lat': self.centroid_lat, 'lng': self.centroid_lng}
+        return None
 
 
 class Farmer(models.Model):
@@ -82,9 +90,12 @@ class Farm(models.Model):
     farmer = models.ForeignKey(Farmer, on_delete=models.CASCADE, related_name='farms')
     county = models.ForeignKey(County, on_delete=models.CASCADE, related_name='farms')
     
-    # Geometry
-    geometry = models.MultiPolygonField(srid=4326)
-    centroid = models.PointField(srid=4326)
+    # Store geometry as GeoJSON text
+    geometry_geojson = models.TextField(blank=True, null=True)
+    
+    # Store coordinates for map display
+    centroid_lat = models.FloatField()
+    centroid_lng = models.FloatField()
     area_ha = models.FloatField(validators=[MinValueValidator(0.1)], help_text="Area in hectares")
     
     # Crop information
@@ -127,18 +138,20 @@ class Farm(models.Model):
     def __str__(self):
         return f"{self.farm_id} - {self.name or 'Unnamed Farm'}"
     
-    def save(self, *args, **kwargs):
-        # Auto-calculate area if not provided
-        if self.geometry and not self.area_ha:
-            # Convert from square degrees to hectares (approximate)
-            # For accurate area, use proper projection transformation
-            self.area_ha = self.geometry.area * 10000  # Rough approximation
-        
-        # Auto-set centroid if not provided
-        if self.geometry and not self.centroid:
-            self.centroid = self.geometry.centroid
-        
-        super().save(*args, **kwargs)
+    @property
+    def geometry(self):
+        """Return geometry as parsed GeoJSON"""
+        if self.geometry_geojson:
+            try:
+                return json.loads(self.geometry_geojson)
+            except json.JSONDecodeError:
+                return None
+        return None
+    
+    @property
+    def centroid(self):
+        """Return centroid as dictionary for map display"""
+        return {'lat': self.centroid_lat, 'lng': self.centroid_lng}
     
     @property
     def crop_days(self):
@@ -207,8 +220,6 @@ class SatelliteAnalysis(models.Model):
     
     def calculate_risk_level(self):
         """Calculate drought risk based on thresholds"""
-        from django.conf import settings
-        
         if self.ndvi is None:
             return 'low'
         

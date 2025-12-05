@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+
+{% block title %}Farm List - Machakos AIDSTTUP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-list text-primary me-2"></i>
+                Farm List
+            </h1>
+            <p class="text-muted mb-0">
+                View and manage all registered farms in Machakos County
+            </p>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Search</label>
+                    <input type="text" class="form-control" name="search" value="{{ search_query }}" 
+                           placeholder="Farm ID, name, or farmer...">
+                </div>
+                
+                <div class="col-md-2">
+                    <label class="form-label">Crop Type</label>
+                    <select class="form-select" name="crop_type">
+                        <option value="">All Crops</option>
+                        {% for crop in crop_types %}
+                        <option value="{{ crop }}" {% if crop == selected_crop %}selected{% endif %}>
+                            {{ crop|title }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-2">
+                    <label class="form-label">Risk Level</label>
+                    <select class="form-select" name="risk_level">
+                        <option value="">All Risks</option>
+                        <option value="low" {% if selected_risk == 'low' %}selected{% endif %}>Low</option>
+                        <option value="moderate" {% if selected_risk == 'moderate' %}selected{% endif %}>Moderate</option>
+                        <option value="severe" {% if selected_risk == 'severe' %}selected{% endif %}>Severe</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label">Subcounty</label>
+                    <select class="form-select" name="subcounty">
+                        <option value="">All Subcounties</option>
+                        {% for subcounty in subcounties %}
+                        <option value="{{ subcounty }}" {% if subcounty == selected_subcounty %}selected{% endif %}>
+                            {{ subcounty }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-2"></i> Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Farm Table -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-table me-2"></i>
+                Farms ({{ farms.count }})
+            </div>
+            <div>
+                <a href="{% url 'map_viewer' %}" class="btn btn-sm btn-outline-primary me-2">
+                    <i class="fas fa-map me-1"></i> View Map
+                </a>
+                <button class="btn btn-sm btn-success" onclick="exportFarms()">
+                    <i class="fas fa-download me-1"></i> Export
+                </button>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Farm ID</th>
+                            <th>Farm Name</th>
+                            <th>Farmer</th>
+                            <th>Crop</th>
+                            <th>Area (ha)</th>
+                            <th>Subcounty</th>
+                            <th>Risk Level</th>
+                            <th>Last Analysis</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for farm in farms %}
+                        <tr>
+                            <td>
+                                <strong>{{ farm.farm_id }}</strong>
+                            </td>
+                            <td>{{ farm.name|default:"Unnamed" }}</td>
+                            <td>
+                                {% if farm.farmer %}
+                                {{ farm.farmer.full_name }}
+                                {% else %}
+                                <span class="text-muted">Unknown</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ farm.crop_type|default:"Unknown" }}</span>
+                            </td>
+                            <td>{{ farm.area_ha|floatformat:2 }}</td>
+                            <td>{{ farm.county.subcounty|default:"Unknown" }}</td>
+                            <td>
+                                {% with farm.analyses.first as latest %}
+                                {% if latest %}
+                                    <span class="badge {% if latest.drought_risk_level == 'severe' %}bg-danger{% elif latest.drought_risk_level == 'moderate' %}bg-warning{% else %}bg-success{% endif %}">
+                                        {{ latest.drought_risk_level|title }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">No Data</span>
+                                {% endif %}
+                                {% endwith %}
+                            </td>
+                            <td>
+                                {% with farm.analyses.first as latest %}
+                                {% if latest %}
+                                    {{ latest.analysis_date|date:"Y-m-d" }}
+                                {% else %}
+                                    <span class="text-muted">Never</span>
+                                {% endif %}
+                                {% endwith %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'farm_detail' farm.farm_id %}" class="btn btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button class="btn btn-outline-success" onclick="analyzeFarm('{{ farm.farm_id }}')">
+                                        <i class="fas fa-chart-line"></i>
+                                    </button>
+                                    <a href="{% url 'admin:farms_farm_change' farm.id %}" class="btn btn-outline-warning" target="_blank">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center py-4">
+                                <i class="fas fa-inbox fa-2x text-muted mb-3"></i>
+                                <div>No farms found</div>
+                                <a href="{% url 'admin:farms_farm_add' %}" class="btn btn-primary mt-2">
+                                    <i class="fas fa-plus me-2"></i> Add First Farm
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            Previous
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                {{ num }}
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            Next
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function analyzeFarm(farmId) {
+        showLoading('Analyzing farm ' + farmId + '...');
+        
+        fetch('/farms/api/run-analysis/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                farm_ids: [farmId],
+                year: new Date().getFullYear(),
+                month: new Date().getMonth() + 1
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            
+            if (data.success) {
+                showToast('Analysis completed for farm ' + farmId, 'success');
+                // Refresh page after 2 seconds
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                showToast('Analysis failed: ' + data.error, 'danger');
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            showToast('Error: ' + error.message, 'danger');
+        });
+    }
+    
+    function exportFarms() {
+        showLoading('Preparing farm data for export...');
+        
+        // In real implementation, this would call an export API
+        setTimeout(() => {
+            hideLoading();
+            showToast('Farm data exported successfully', 'success');
+            
+            // Simulate download
+            const link = document.createElement('a');
+            link.href = '/static/exports/farms_export.csv';
+            link.download = 'machakos_farms_' + new Date().toISOString().split('T')[0] + '.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }, 1500);
+    }
+</script>
+{% endblock %}
