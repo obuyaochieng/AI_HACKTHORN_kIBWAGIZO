@@ -8,7 +8,7 @@ import json
 from datetime import datetime
 
 try:
-    from .utils.gee_working import WorkingGEEAnalyzer, test_working_gee
+    from farms.utils.gee_working import WorkingGEEAnalyzer, test_working_gee
     GEE_AVAILABLE = True
 except Exception as e:
     print(f"⚠️ GEE not available: {e}")
