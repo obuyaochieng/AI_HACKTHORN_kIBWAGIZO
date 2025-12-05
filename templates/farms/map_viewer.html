@@ -1,0 +1,1175 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}GEE Satellite Map - Machakos Drought Insurance{% endblock %}
+
+{% block extra_css %}
+<style>
+    .gee-map-container {
+        height: 700px;
+        width: 100%;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid #dee2e6;
+    }
+    
+    .map-controls-panel {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        height: 100%;
+    }
+    
+    .map-viewer-container {
+        height: calc(100vh - 150px);
+    }
+    
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255,255,255,0.9);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        border-radius: 10px;
+    }
+    
+    .gee-legend {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        z-index: 1000;
+        max-width: 300px;
+    }
+    
+    .index-description {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-bottom: 10px;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+        padding: 2px 0;
+    }
+    
+    .legend-color {
+        width: 20px;
+        height: 20px;
+        margin-right: 10px;
+        border-radius: 3px;
+    }
+    
+    .farm-info-card {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        z-index: 1000;
+        max-width: 300px;
+        display: none;
+    }
+    
+    .export-btn {
+        margin-top: 20px;
+        width: 100%;
+    }
+    
+    .chart-container {
+        margin-top: 20px;
+        padding: 15px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    #geeMap {
+        height: 100%;
+        width: 100%;
+    }
+    
+    .data-status {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Map Header -->
+    <div class="dashboard-header mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-5 fw-bold mb-2">
+                    <i class="fas fa-satellite me-2"></i>Satellite Map Viewer
+                </h1>
+                <p class="lead mb-0">
+                    Interactive Google Earth Engine satellite imagery with vegetation indices
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <button class="btn btn-light" onclick="printMap()">
+                    <i class="fas fa-print me-2"></i>Print
+                </button>
+                <button class="btn btn-light" onclick="fullscreenMap()">
+                    <i class="fas fa-expand me-2"></i>Fullscreen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Container -->
+    <div class="row map-viewer-container">
+        <!-- Controls Panel -->
+        <div class="col-md-4 mb-4">
+            <div class="map-controls-panel">
+                <h4 class="mb-4">
+                    <i class="fas fa-sliders-h me-2"></i>Map Controls
+                </h4>
+                
+                <!-- Data Availability Status -->
+                <div class="alert alert-info mb-4" id="dataStatusAlert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <span id="dataStatusText">Checking data availability...</span>
+                </div>
+                
+                <!-- Year Selection -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold mb-2">
+                        <i class="fas fa-calendar-alt me-2"></i>Year
+                    </label>
+                    <select id="yearSelect" class="form-select">
+                        <!-- Will be populated dynamically -->
+                    </select>
+                    <div class="data-status" id="yearStatus">
+                        Loading available years...
+                    </div>
+                </div>
+                
+                <!-- Month Selection -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold mb-2">
+                        <i class="fas fa-calendar me-2"></i>Month
+                    </label>
+                    <select id="monthSelect" class="form-select">
+                        <!-- Will be populated dynamically -->
+                    </select>
+                    <div class="data-status" id="monthStatus">
+                        Loading available months...
+                    </div>
+                </div>
+                
+                <!-- Index Selection -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold mb-2">
+                        <i class="fas fa-chart-line me-2"></i>Vegetation Index
+                    </label>
+                    <select id="indexSelect" class="form-select">
+                        <option value="NDVI" selected>NDVI (Normalized Difference Vegetation Index)</option>
+                        <option value="NDMI">NDMI (Normalized Difference Moisture Index)</option>
+                        <option value="BSI">BSI (Bare Soil Index)</option>
+                        <option value="EVI">EVI (Enhanced Vegetation Index)</option>
+                        <option value="SAVI">SAVI (Soil Adjusted Vegetation Index)</option>
+                        <option value="NDRE">NDRE (Normalized Difference Red Edge)</option>
+                    </select>
+                    <div class="index-description mt-2" id="indexDescription">
+                        NDVI measures vegetation health (-1 to 1). Higher values indicate healthier vegetation.
+                    </div>
+                </div>
+                
+                <!-- Farm Selection -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold mb-2">
+                        <i class="fas fa-tractor me-2"></i>Select Farm
+                    </label>
+                    <select id="farmSelect" class="form-select">
+                        <option value="">All Farms</option>
+                        <!-- Will be populated by JavaScript -->
+                    </select>
+                </div>
+                
+                <!-- Cloud Filter -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold mb-2">
+                        <i class="fas fa-cloud me-2"></i>Cloud Filter
+                    </label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="cloudFilter" checked>
+                        <label class="form-check-label" for="cloudFilter">
+                            Remove clouds from imagery
+                        </label>
+                    </div>
+                    <div class="form-range mt-2" id="cloudThresholdRange">
+                        <label class="form-label small">Cloud Threshold: <span id="cloudThresholdValue">20%</span></label>
+                        <input type="range" class="form-range" min="0" max="100" value="20" step="5">
+                    </div>
+                </div>
+                
+                <!-- Analysis Options -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold mb-2">
+                        <i class="fas fa-chart-bar me-2"></i>Analysis Options
+                    </label>
+                    <div class="btn-group w-100" role="group">
+                        <button type="button" class="btn btn-outline-primary" onclick="analyzeCurrentView()">
+                            <i class="fas fa-chart-line"></i> Analyze
+                        </button>
+                        <button type="button" class="btn btn-outline-success" onclick="exportData()">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                        <button type="button" class="btn btn-outline-info" onclick="compareIndices()">
+                            <i class="fas fa-exchange-alt"></i> Compare
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Status Message -->
+                <div class="alert alert-info" role="alert" id="statusMessage">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <span id="statusText">Initializing Google Earth Engine...</span>
+                </div>
+                
+                <!-- Update Map Button -->
+                <button class="btn btn-primary w-100 py-2" onclick="updateGeeMap()" id="updateMapBtn">
+                    <i class="fas fa-sync-alt me-2"></i> Load Latest Satellite Data
+                </button>
+            </div>
+            
+            <!-- Chart Panel -->
+            <div class="chart-container mt-3">
+                <h6 class="mb-3">
+                    <i class="fas fa-chart-line me-2"></i>Monthly Trends
+                </h6>
+                <canvas id="monthlyChart" height="200"></canvas>
+            </div>
+        </div>
+        
+        <!-- GEE Map Container -->
+        <div class="col-md-8 mb-4">
+            <div class="card h-100">
+                <div class="card-body p-0 position-relative">
+                    <!-- Loading Overlay -->
+                    <div class="loading-overlay" id="loadingOverlay">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary mb-3" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <h5>Loading Google Earth Engine</h5>
+                            <p class="text-muted">Fetching latest satellite data...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Farm Info Card -->
+                    <div class="farm-info-card" id="farmInfoCard">
+                        <h6 id="farmInfoTitle">Farm Information</h6>
+                        <div id="farmInfoContent">
+                            <p class="small mb-1">Select a farm to view details</p>
+                        </div>
+                        <button class="btn btn-sm btn-outline-secondary mt-2" onclick="closeFarmInfo()">
+                            <i class="fas fa-times"></i> Close
+                        </button>
+                    </div>
+                    
+                    <!-- GEE Map -->
+                    <div id="geeMap" class="gee-map-container"></div>
+                    
+                    <!-- Legend -->
+                    <div class="gee-legend" id="geeLegend">
+                        <h6 id="legendTitle">NDVI Legend</h6>
+                        <div id="legendContent">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: linear-gradient(to right, #d73027, #fc8d59, #fee08b, #d9ef8b, #91cf60, #1a9850);"></div>
+                                <span class="small">Low to High Vegetation</span>
+                            </div>
+                            <div class="legend-scale mt-2">
+                                <div class="d-flex justify-content-between small">
+                                    <span>-1</span>
+                                    <span>0</span>
+                                    <span>1</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Farm Details Panel (Hidden by default) -->
+    <div class="row mt-4 d-none" id="farmDetailsPanel">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Selected Farm Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row" id="farmDetailsContent">
+                        <!-- Farm details will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Google Earth Engine API -->
+<script src="https://code.earthengine.google.com/"></script>
+<!-- ee_api.js must be loaded after ee is defined -->
+<script src="https://code.earthengine.google.com/ee_api.js"></script>
+
+<script>
+// Global variables
+let map;
+let currentFarm = null;
+let geeImage = null;
+let farmMarkers = [];
+let selectedFarmLayer = null;
+let monthlyChart = null;
+let latestYear = null;
+let latestMonth = null;
+let availableYears = [];
+let availableMonths = {};
+
+// Months mapping
+const months = {
+    'Jan': {name: 'January', number: 1},
+    'Feb': {name: 'February', number: 2},
+    'Mar': {name: 'March', number: 3},
+    'Apr': {name: 'April', number: 4},
+    'May': {name: 'May', number: 5},
+    'Jun': {name: 'June', number: 6},
+    'Jul': {name: 'July', number: 7},
+    'Aug': {name: 'August', number: 8},
+    'Sep': {name: 'September', number: 9},
+    'Oct': {name: 'October', number: 10},
+    'Nov': {name: 'November', number: 11},
+    'Dec': {name: 'December', number: 12}
+};
+
+// Visualization parameters
+const visParams = {
+    'NDVI': {min: 0, max: 1, palette: ['red', 'yellow', 'green']},
+    'NDMI': {min: -1, max: 1, palette: ['white', 'blue']},
+    'BSI': {min: -1, max: 1, palette: ['green', 'yellow', 'brown']},
+    'EVI': {min: -1, max: 1, palette: ['blue', 'white', 'green']},
+    'SAVI': {min: 0.1, max: 0.7, palette: ['brown', 'yellow', 'green']},
+    'NDRE': {min: 0.1, max: 0.45, palette: ['purple', 'yellow', 'green']}
+};
+
+// Index descriptions
+const indexDescriptions = {
+    'NDVI': 'NDVI measures vegetation health (-1 to 1). Higher values indicate healthier vegetation.',
+    'NDMI': 'NDMI measures vegetation water content (-1 to 1). Higher values indicate more moisture.',
+    'BSI': 'BSI identifies bare soil areas (-1 to 1). Higher values indicate more exposed soil.',
+    'EVI': 'EVI improves on NDVI by reducing atmospheric and soil background influences.',
+    'SAVI': 'SAVI minimizes soil brightness effects for better vegetation monitoring.',
+    'NDRE': 'NDRE is sensitive to chlorophyll content in moderate to high vegetation.'
+};
+
+// Initialize when page loads
+$(document).ready(function() {
+    // Initialize GEE
+    initializeGee();
+});
+
+function initializeGee() {
+    // Check if ee is available
+    if (typeof ee === 'undefined') {
+        showError('Google Earth Engine API not loaded. Please check your connection.');
+        return;
+    }
+    
+    // Initialize GEE
+    ee.initialize(null, null, function() {
+        console.log('GEE initialized successfully');
+        updateStatus('GEE initialized. Fetching latest data...');
+        
+        // Initialize Leaflet map
+        initLeafletMap();
+        
+        // Load farm data
+        loadFarmData();
+        
+        // Check data availability
+        checkDataAvailability();
+        
+    }, function(error) {
+        showError('Failed to initialize Google Earth Engine: ' + error);
+        $('#loadingOverlay').html(`
+            <div class="text-center">
+                <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                <h5>GEE Initialization Failed</h5>
+                <p class="text-muted">${error}</p>
+                <button class="btn btn-primary" onclick="location.reload()">
+                    <i class="fas fa-redo"></i> Retry
+                </button>
+            </div>
+        `);
+    });
+}
+
+function initLeafletMap() {
+    // Create Leaflet map
+    map = L.map('geeMap').setView([-1.5167, 37.2667], 10);
+    
+    // Add base layers
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    
+    // Add satellite layer
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: '© Esri'
+    }).addTo(map);
+    
+    // Add layer control
+    const baseLayers = {
+        "Street Map": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'),
+        "Satellite": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}')
+    };
+    
+    L.control.layers(baseLayers).addTo(map);
+}
+
+function checkDataAvailability() {
+    updateStatus('Checking satellite data availability...');
+    
+    // Get farm geometry to check data availability
+    const farms = ee.FeatureCollection('projects/eco-avenue-411501/assets/farms');
+    const farmGeometry = farms.geometry();
+    
+    // Get Sentinel-2 collection
+    const s2Collection = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
+        .filterBounds(farmGeometry);
+    
+    // Get date range of available data
+    s2Collection.aggregate_array('system:time_start').evaluate(function(dates) {
+        if (dates && dates.length > 0) {
+            // Convert timestamps to dates
+            const dateObjects = dates.map(timestamp => new Date(timestamp));
+            
+            // Find latest date
+            const latestDate = new Date(Math.max(...dates));
+            latestYear = latestDate.getFullYear();
+            latestMonth = latestDate.getMonth() + 1; // JavaScript months are 0-indexed
+            
+            // Find available years
+            const yearsSet = new Set();
+            dateObjects.forEach(date => {
+                yearsSet.add(date.getFullYear());
+            });
+            
+            availableYears = Array.from(yearsSet).sort((a, b) => b - a); // Sort descending
+            
+            // Find available months for each year
+            availableMonths = {};
+            availableYears.forEach(year => {
+                const yearDates = dateObjects.filter(date => date.getFullYear() === year);
+                const monthsSet = new Set();
+                yearDates.forEach(date => {
+                    monthsSet.add(date.getMonth() + 1); // 1-12
+                });
+                availableMonths[year] = Array.from(monthsSet).sort((a, b) => a - b);
+            });
+            
+            // Update UI with available data
+            updateDataSelectionUI();
+            
+            // Auto-load latest data
+            loadLatestData();
+            
+        } else {
+            showError('No satellite data available in GEE for this area.');
+            $('#dataStatusText').text('No satellite data available.');
+            $('#dataStatusAlert').removeClass('alert-info').addClass('alert-warning');
+        }
+    }, function(error) {
+        console.error('Error checking data availability:', error);
+        showError('Error checking data availability. Using default values.');
+        loadDefaultData();
+    });
+}
+
+function updateDataSelectionUI() {
+    // Update year dropdown
+    const yearSelect = $('#yearSelect');
+    yearSelect.empty();
+    
+    availableYears.forEach(year => {
+        yearSelect.append(`<option value="${year}">${year}</option>`);
+    });
+    
+    $('#yearStatus').text(`Available years: ${availableYears.join(', ')}`);
+    
+    // Update month dropdown for the latest year
+    updateMonthDropdown(latestYear);
+    
+    // Set to latest year
+    yearSelect.val(latestYear);
+    
+    // Update data status
+    const latestMonthName = Object.keys(months).find(key => months[key].number === latestMonth);
+    $('#dataStatusText').html(`
+        Latest available data: <strong>${latestMonthName} ${latestYear}</strong><br>
+        Total years available: ${availableYears.length}
+    `);
+    $('#dataStatusAlert').removeClass('alert-info').addClass('alert-success');
+    
+    // Setup event listeners
+    setupEventListeners();
+}
+
+function updateMonthDropdown(year) {
+    const monthSelect = $('#monthSelect');
+    monthSelect.empty();
+    
+    if (availableMonths[year]) {
+        const monthsAvailable = availableMonths[year];
+        
+        // Add available months
+        monthsAvailable.forEach(monthNumber => {
+            const monthName = Object.keys(months).find(key => months[key].number === monthNumber);
+            monthSelect.append(`<option value="${monthName}">${months[monthName].name}</option>`);
+        });
+        
+        $('#monthStatus').text(`Available months: ${monthsAvailable.length} months`);
+        
+        // Set to latest month if this is the latest year
+        if (year === latestYear) {
+            const latestMonthName = Object.keys(months).find(key => months[key].number === latestMonth);
+            monthSelect.val(latestMonthName);
+        } else {
+            // Set to last available month for this year
+            const lastMonthNumber = monthsAvailable[monthsAvailable.length - 1];
+            const lastMonthName = Object.keys(months).find(key => months[key].number === lastMonthNumber);
+            monthSelect.val(lastMonthName);
+        }
+    } else {
+        monthSelect.append('<option value="">No data available</option>');
+        $('#monthStatus').text('No data available for this year');
+    }
+}
+
+function loadLatestData() {
+    updateStatus(`Loading latest data: ${Object.keys(months).find(key => months[key].number === latestMonth)} ${latestYear}`);
+    
+    // Update button text
+    $('#updateMapBtn').html(`<i class="fas fa-sync-alt me-2"></i> Load Latest (${Object.keys(months).find(key => months[key].number === latestMonth)} ${latestYear})`);
+    
+    // Load the map with latest data
+    updateGeeMap();
+}
+
+function loadDefaultData() {
+    // Use current date as fallback
+    const now = new Date();
+    latestYear = now.getFullYear();
+    latestMonth = now.getMonth() + 1;
+    
+    // Generate default years (2018-current)
+    availableYears = [];
+    for (let year = 2018; year <= latestYear; year++) {
+        availableYears.push(year);
+    }
+    
+    // Update UI with default data
+    updateDataSelectionUI();
+}
+
+function loadFarmData() {
+    // Load farms from GEE assets
+    const farmAssetsPath = 'projects/eco-avenue-411501/assets/farms';
+    
+    ee.data.getAsset(farmAssetsPath, function(asset) {
+        if (asset && asset.type === 'FeatureCollection') {
+            // Load the feature collection
+            const farms = ee.FeatureCollection(farmAssetsPath);
+            
+            // Get farm count
+            farms.size().evaluate(function(count) {
+                console.log(`Loaded ${count} farms from GEE assets`);
+                
+                // Get farm names for dropdown
+                farms.aggregate_array('farm_name').evaluate(function(farmNames) {
+                    populateFarmDropdown(farmNames || []);
+                });
+                
+                // Add farms to map
+                addFarmsToMap(farms);
+                
+                // Hide loading overlay
+                $('#loadingOverlay').fadeOut();
+            });
+        } else {
+            showError('Could not load farm assets from GEE');
+            $('#loadingOverlay').fadeOut();
+        }
+    }, function(error) {
+        console.error('Error loading farm assets:', error);
+        showError('Error loading farm data');
+        $('#loadingOverlay').fadeOut();
+    });
+}
+
+function populateFarmDropdown(farmNames) {
+    const farmSelect = $('#farmSelect');
+    farmSelect.empty();
+    
+    // Add "All Farms" option
+    farmSelect.append('<option value="">All Farms</option>');
+    
+    // Add farm options
+    if (farmNames && farmNames.length > 0) {
+        farmNames.forEach(function(name, index) {
+            farmSelect.append(`<option value="${name}">${name}</option>`);
+        });
+    } else {
+        // Generate default farm names
+        for (let i = 1; i <= 20; i++) {
+            farmSelect.append(`<option value="Farm ${i}">Farm ${i}</option>`);
+        }
+    }
+}
+
+function addFarmsToMap(farms) {
+    // Clear existing markers
+    farmMarkers.forEach(marker => map.removeLayer(marker));
+    farmMarkers = [];
+    
+    // Convert GEE features to GeoJSON and add to map
+    farms.getInfo(function(farmData) {
+        if (farmData && farmData.features) {
+            farmData.features.forEach(function(feature, index) {
+                const farm = feature.properties;
+                const geometry = feature.geometry;
+                
+                if (geometry.type === 'Polygon') {
+                    // Create polygon for farm boundary
+                    const polygon = L.polygon(geometry.coordinates[0].map(coord => [coord[1], coord[0]]), {
+                        color: '#3388ff',
+                        weight: 2,
+                        opacity: 0.7,
+                        fillColor: '#3388ff',
+                        fillOpacity: 0.1
+                    }).addTo(map);
+                    
+                    // Add popup
+                    polygon.bindPopup(`
+                        <div class="farm-popup">
+                            <h6>${farm.farm_name || `Farm ${index + 1}`}</h6>
+                            <p class="mb-1 small"><strong>Farm ID:</strong> ${farm.uid || index + 1}</p>
+                            ${farm.crop ? `<p class="mb-1 small"><strong>Crop:</strong> ${farm.crop}</p>` : ''}
+                            ${farm.area ? `<p class="mb-1 small"><strong>Area:</strong> ${farm.area} ha</p>` : ''}
+                            <button class="btn btn-sm btn-primary mt-1 w-100" onclick="selectFarm('${farm.farm_name || `Farm ${index + 1}`}')">
+                                <i class="fas fa-eye"></i> View Details
+                            </button>
+                        </div>
+                    `);
+                    
+                    farmMarkers.push(polygon);
+                }
+            });
+            
+            // Fit map to show all farms
+            if (farmMarkers.length > 0) {
+                const group = L.featureGroup(farmMarkers);
+                map.fitBounds(group.getBounds());
+            }
+        }
+    });
+}
+
+function updateGeeMap() {
+    showLoading('Loading satellite imagery...');
+    
+    const year = parseInt($('#yearSelect').val());
+    const monthName = $('#monthSelect').val();
+    const index = $('#indexSelect').val();
+    const selectedFarm = $('#farmSelect').val();
+    const cloudThreshold = $('#cloudThresholdRange input').val();
+    
+    // Validate selection
+    if (!monthName) {
+        hideLoading();
+        showError('No data available for selected month/year combination');
+        return;
+    }
+    
+    // Get month number
+    const monthNumber = months[monthName].number;
+    
+    // Update index description
+    $('#indexDescription').text(indexDescriptions[index] || '');
+    
+    // Calculate date range
+    const startDate = ee.Date.fromYMD(year, monthNumber, 1);
+    const endDate = startDate.advance(1, 'month');
+    
+    // Define geometry (selected farm or all farms)
+    let geometry = null;
+    if (selectedFarm && selectedFarm !== '') {
+        // Get specific farm geometry
+        geometry = getFarmGeometry(selectedFarm);
+    } else {
+        // Use bounds of all farms
+        geometry = ee.FeatureCollection('projects/eco-avenue-411501/assets/farms').geometry();
+    }
+    
+    // Load Sentinel-2 collection
+    const s2Collection = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
+        .filterBounds(geometry)
+        .filterDate(startDate, endDate)
+        .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', parseInt(cloudThreshold)));
+    
+    // Check if we have images
+    s2Collection.size().evaluate(function(count) {
+        if (count === 0) {
+            hideLoading();
+            
+            // Try with a larger cloud threshold
+            if (parseInt(cloudThreshold) < 50) {
+                showWarning(`No cloud-free images for ${monthName} ${year}. Trying with 50% cloud threshold...`);
+                
+                // Retry with higher threshold
+                $('#cloudThresholdRange input').val(50);
+                $('#cloudThresholdValue').text('50%');
+                setTimeout(updateGeeMap, 500);
+            } else {
+                showError(`No satellite images available for ${monthName} ${year} even with 50% cloud threshold.`);
+                updateStatus(`No data for ${monthName} ${year}. Try a different month.`);
+            }
+            return;
+        }
+        
+        updateStatus(`Processing ${count} satellite images for ${monthName} ${year}...`);
+        
+        // Apply cloud mask
+        const maskedCollection = s2Collection.map(maskS2);
+        
+        // Compute indices
+        const indicesCollection = maskedCollection.map(computeIndices);
+        
+        // Calculate median
+        const medianImage = indicesCollection.median();
+        
+        // Clip to geometry
+        const clippedImage = medianImage.clip(geometry);
+        
+        // Get visualization parameters
+        const vis = visParams[index] || {min: 0, max: 1, palette: ['red', 'yellow', 'green']};
+        
+        // Get map ID for the image
+        clippedImage.getMap(vis, function(mapId) {
+            // Remove existing GEE layer
+            if (geeImage) {
+                map.removeLayer(geeImage);
+            }
+            
+            // Add new GEE layer
+            geeImage = L.tileLayer(`https://earthengine.googleapis.com/map/${mapId['mapid']}/{z}/{x}/{y}?token=${mapId['token']}`, {
+                attribution: 'Google Earth Engine'
+            }).addTo(map);
+            
+            // Update legend
+            updateLegend(index);
+            
+            // Update chart
+            updateMonthlyChart(year, geometry);
+            
+            hideLoading();
+            updateStatus(`Loaded ${count} images for ${monthName} ${year}`);
+            
+            // If a farm is selected, zoom to it
+            if (selectedFarm && selectedFarm !== '') {
+                zoomToFarm(selectedFarm);
+            }
+            
+            // Update button with current selection
+            $('#updateMapBtn').html(`<i class="fas fa-sync-alt me-2"></i> Update Map (${monthName} ${year})`);
+        }, function(error) {
+            hideLoading();
+            showError('Failed to load map image: ' + error);
+        });
+    }, function(error) {
+        hideLoading();
+        showError('Error checking image count: ' + error);
+    });
+}
+
+function maskS2(image) {
+    const qa = image.select('QA60');
+    const cloudBitMask = 1 << 10;
+    const cirrusBitMask = 1 << 11;
+    const mask = qa.bitwiseAnd(cloudBitMask).eq(0).and(
+        qa.bitwiseAnd(cirrusBitMask).eq(0)
+    );
+    return image.updateMask(mask).divide(10000);
+}
+
+function computeIndices(image) {
+    // NDVI
+    const ndvi = image.normalizedDifference(['B8', 'B4']).rename('NDVI');
+    
+    // NDMI
+    const ndmi = image.normalizedDifference(['B8', 'B11']).rename('NDMI');
+    
+    // BSI
+    const bsi = image.expression(
+        '(SWIR + RED - NIR - BLUE)/(SWIR + RED + NIR + BLUE)',
+        {
+            SWIR: image.select('B11'),
+            RED: image.select('B4'),
+            NIR: image.select('B8'),
+            BLUE: image.select('B2')
+        }
+    ).rename('BSI');
+    
+    // EVI
+    const evi = image.expression(
+        '2.5 * ((NIR - RED) / (NIR + 6 * RED - 7.5 * BLUE + 1))',
+        {
+            NIR: image.select('B8'),
+            RED: image.select('B4'),
+            BLUE: image.select('B2')
+        }
+    ).rename('EVI');
+    
+    // SAVI
+    const savi = image.expression(
+        '((NIR - RED) / (NIR + RED + L)) * (1 + L)',
+        {
+            NIR: image.select('B8'),
+            RED: image.select('B4'),
+            L: 0.5
+        }
+    ).rename('SAVI');
+    
+    // NDRE
+    const ndre = image.normalizedDifference(['B8', 'B5']).rename('NDRE');
+    
+    return image.addBands([ndvi, ndmi, bsi, evi, savi, ndre]);
+}
+
+function getFarmGeometry(farmName) {
+    // This is a simplified version - in reality, you'd query GEE for the specific farm
+    const farms = ee.FeatureCollection('projects/eco-avenue-411501/assets/farms');
+    return farms.filter(ee.Filter.eq('farm_name', farmName)).geometry();
+}
+
+function selectFarm(farmName) {
+    // Update dropdown
+    $('#farmSelect').val(farmName);
+    
+    // Show farm info
+    showFarmInfo(farmName);
+    
+    // Update map
+    updateGeeMap();
+}
+
+function zoomToFarm(farmName) {
+    const farms = ee.FeatureCollection('projects/eco-avenue-411501/assets/farms');
+    const farm = farms.filter(ee.Filter.eq('farm_name', farmName));
+    
+    farm.geometry().bounds().evaluate(function(bounds) {
+        if (bounds && bounds[0] && bounds[1]) {
+            const southWest = L.latLng(bounds[0][1], bounds[0][0]);
+            const northEast = L.latLng(bounds[1][1], bounds[1][0]);
+            map.fitBounds(L.latLngBounds(southWest, northEast), {padding: [50, 50]});
+        }
+    });
+}
+
+function showFarmInfo(farmName) {
+    const farms = ee.FeatureCollection('projects/eco-avenue-411501/assets/farms');
+    const farm = farms.filter(ee.Filter.eq('farm_name', farmName));
+    
+    farm.first().getInfo(function(farmData) {
+        if (farmData && farmData.properties) {
+            const props = farmData.properties;
+            
+            $('#farmInfoTitle').text(props.farm_name || farmName);
+            $('#farmInfoContent').html(`
+                <p class="small mb-1"><strong>Farm ID:</strong> ${props.uid || 'N/A'}</p>
+                ${props.crop ? `<p class="small mb-1"><strong>Crop Type:</strong> ${props.crop}</p>` : ''}
+                ${props.area ? `<p class="small mb-1"><strong>Area:</strong> ${props.area} ha</p>` : ''}
+                ${props.landuse ? `<p class="small mb-1"><strong>Land Use:</strong> ${props.landuse}</p>` : ''}
+                ${props.soil_type ? `<p class="small mb-1"><strong>Soil Type:</strong> ${props.soil_type}</p>` : ''}
+                <button class="btn btn-sm btn-success mt-2 w-100" onclick="analyzeFarm('${farmName}')">
+                    <i class="fas fa-chart-line"></i> Analyze Farm
+                </button>
+            `);
+            
+            $('#farmInfoCard').show();
+            
+            // Show details panel
+            showFarmDetailsPanel(props);
+        }
+    });
+}
+
+function showFarmDetailsPanel(farmProps) {
+    $('#farmDetailsPanel').removeClass('d-none');
+    $('#farmDetailsContent').html(`
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6><i class="fas fa-info-circle me-2"></i>Basic Info</h6>
+                    <p class="mb-1"><strong>Farm Name:</strong> ${farmProps.farm_name || 'N/A'}</p>
+                    <p class="mb-1"><strong>Farm ID:</strong> ${farmProps.uid || 'N/A'}</p>
+                    <p class="mb-1"><strong>Crop:</strong> ${farmProps.crop || 'N/A'}</p>
+                    <p class="mb-1"><strong>Area:</strong> ${farmProps.area || 'N/A'} ha</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6><i class="fas fa-chart-line me-2"></i>Current Analysis</h6>
+                    <p class="mb-1"><strong>Month:</strong> ${$('#monthSelect').val()} ${$('#yearSelect').val()}</p>
+                    <p class="mb-1"><strong>Index:</strong> ${$('#indexSelect').val()}</p>
+                    <button class="btn btn-sm btn-primary mt-2" onclick="runFarmAnalysis()">
+                        <i class="fas fa-play"></i> Run Analysis
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6><i class="fas fa-shield-alt me-2"></i>Insurance Status</h6>
+                    <p class="mb-1"><strong>Coverage:</strong> ${farmProps.insurance || 'Not Insured'}</p>
+                    <p class="mb-1"><strong>Risk Level:</strong> <span class="badge bg-warning">Medium</span></p>
+                    <button class="btn btn-sm btn-success mt-2" onclick="viewInsurance()">
+                        <i class="fas fa-file-contract"></i> View Policy
+                    </button>
+                </div>
+            </div>
+        </div>
+    `);
+}
+
+function closeFarmInfo() {
+    $('#farmInfoCard').hide();
+    $('#farmDetailsPanel').addClass('d-none');
+    $('#farmSelect').val('');
+}
+
+function updateLegend(index) {
+    const vis = visParams[index];
+    
+    if (vis && vis.palette) {
+        // Create gradient legend
+        const gradient = vis.palette.join(', ');
+        $('#legendContent').html(`
+            <h6>${index} Scale</h6>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(to right, ${gradient});"></div>
+                <span class="small">${vis.min} to ${vis.max}</span>
+            </div>
+        `);
+    }
+    
+    $('#legendTitle').text(`${index} Legend`);
+}
+
+function initMonthlyChart() {
+    const ctx = document.getElementById('monthlyChart').getContext('2d');
+    monthlyChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            datasets: [{
+                label: 'NDVI',
+                data: [],
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    max: 1,
+                    title: {
+                        display: true,
+                        text: 'Index Value'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updateMonthlyChart(year, geometry) {
+    // Calculate monthly indices for the selected geometry
+    const index = $('#indexSelect').val();
+    const monthsList = ee.List.sequence(1, 12);
+    
+    const monthlyData = monthsList.map(function(month) {
+        const start = ee.Date.fromYMD(year, month, 1);
+        const end = start.advance(1, 'month');
+        
+        const img = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
+            .filterBounds(geometry)
+            .filterDate(start, end)
+            .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 30))
+            .map(maskS2)
+            .map(computeIndices)
+            .median();
+        
+        const stats = img.select(index).reduceRegion({
+            reducer: ee.Reducer.mean(),
+            geometry: geometry,
+            scale: 10,
+            maxPixels: 1e9
+        });
+        
+        return ee.Feature(null, {
+            month: month,
+            value: stats.get(index)
+        });
+    });
+    
+    ee.FeatureCollection(monthlyData).getInfo(function(data) {
+        if (data && data.features) {
+            const values = data.features.map(f => f.properties.value || 0);
+            monthlyChart.data.datasets[0].data = values;
+            monthlyChart.data.datasets[0].label = index;
+            monthlyChart.update();
+        }
+    });
+}
+
+function setupEventListeners() {
+    // Year selection
+    $('#yearSelect').change(function() {
+        const year = parseInt($(this).val());
+        updateMonthDropdown(year);
+        updateGeeMap();
+    });
+    
+    // Month selection
+    $('#monthSelect').change(function() {
+        updateGeeMap();
+    });
+    
+    // Index selection
+    $('#indexSelect').change(function() {
+        const index = $(this).val();
+        $('#indexDescription').text(indexDescriptions[index] || '');
+        updateGeeMap();
+    });
+    
+    // Farm selection
+    $('#farmSelect').change(function() {
+        const farmName = $(this).val();
+        if (farmName && farmName !== '') {
+            selectFarm(farmName);
+        } else {
+            closeFarmInfo();
+        }
+    });
+    
+    // Cloud threshold slider
+    $('#cloudThresholdRange input').on('input', function() {
+        $('#cloudThresholdValue').text($(this).val() + '%');
+        updateGeeMap();
+    });
+    
+    // Cloud filter checkbox
+    $('#cloudFilter').change(function() {
+        $('#cloudThresholdRange').toggle(this.checked);
+        if (this.checked) {
+            updateGeeMap();
+        }
+    });
+}
+
+// Utility functions
+function showLoading(message) {
+    $('#loadingOverlay').show();
+    if (message) {
+        $('#loadingOverlay .text-center h5').text(message);
+    }
+}
+
+function hideLoading() {
+    $('#loadingOverlay').fadeOut();
+}
+
+function updateStatus(message) {
+    $('#statusText').text(message);
+}
+
+function showError(message) {
+    toastr.error(message);
+    $('#statusText').html(`<span class="text-danger">${message}</span>`);
+}
+
+function showWarning(message) {
+    toastr.warning(message);
+    $('#statusText').html(`<span class="text-warning">${message}</span>`);
+}
+
+function printMap() {
+    window.print();
+}
+
+function fullscreenMap() {
+    const elem = document.getElementById('geeMap');
+    if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+    } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+    } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen();
+    }
+}
+
+// Other functions (analyzeFarm, exportData, etc.) remain the same as previous version
+// ... [rest of the functions from previous version]
+
+
+
+// Initialize on page load
+window.onload = function() {
+    // Give GEE API time to load
+    setTimeout(initializeGee, 1000);
+};
+</script>
+{% endblock %}

@@ -3,129 +3,276 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Machakos AIDSTTUP - Drought Monitoring{% endblock %}</title>
+    <title>{% block title %}Machakos Drought Monitoring & Insurance{% endblock %}</title>
     
-    <!-- Bootstrap 5 -->
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <!-- Toastr CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     
-    <!-- Custom CSS -->
     <style>
         :root {
-            --primary-color: #2c7873;
-            --secondary-color: #6fb3b8;
-            --accent-color: #ff7f50;
-            --light-bg: #f8f9fa;
-            --dark-text: #343a40;
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
         }
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--light-bg);
-            color: var(--dark-text);
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
         
         .navbar-brand {
             font-weight: 700;
-            color: var(--primary-color) !important;
+            font-size: 1.5rem;
         }
         
         .sidebar {
-            background: linear-gradient(180deg, #2c7873 0%, #204e4a 100%);
+            background: var(--primary-color);
+            min-height: calc(100vh - 56px);
             color: white;
-            min-height: 100vh;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            transition: all 0.3s;
         }
         
         .sidebar .nav-link {
             color: rgba(255,255,255,0.8);
-            padding: 12px 20px;
-            margin: 5px 0;
-            border-radius: 8px;
-            transition: all 0.3s;
+            padding: 0.75rem 1rem;
+            border-left: 3px solid transparent;
         }
         
         .sidebar .nav-link:hover {
-            background-color: rgba(255,255,255,0.1);
             color: white;
+            background: rgba(255,255,255,0.1);
+            border-left: 3px solid var(--secondary-color);
         }
         
         .sidebar .nav-link.active {
-            background-color: var(--accent-color);
             color: white;
+            background: rgba(255,255,255,0.15);
+            border-left: 3px solid var(--secondary-color);
         }
         
-        .card {
-            border-radius: 12px;
+        .sidebar .nav-link i {
+            width: 20px;
+            margin-right: 10px;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .stat-card {
+            border-radius: 10px;
             border: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            transition: transform 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            height: 100%;
         }
         
-        .card:hover {
+        .stat-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
+        .stat-card .card-body {
+            padding: 1.5rem;
+        }
+        
+        .stat-icon {
+            font-size: 2.5rem;
+            opacity: 0.8;
+        }
+        
+        .risk-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        .risk-low {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .risk-moderate {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .risk-high {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        .status-active {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-paid {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .map-container {
+            height: 500px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #dee2e6;
+        }
+        
+        .leaflet-container {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .action-btn:hover {
+            transform: scale(1.05);
         }
         
         .card-header {
             background-color: white;
-            border-bottom: 2px solid var(--primary-color);
+            border-bottom: 2px solid var(--light-color);
             font-weight: 600;
         }
         
-        .risk-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-weight: 600;
-        }
-        
-        .risk-low { background-color: #d4edda; color: #155724; }
-        .risk-moderate { background-color: #fff3cd; color: #856404; }
-        .risk-severe { background-color: #f8d7da; color: #721c24; }
-        
-        #map {
-            height: 600px;
-            border-radius: 12px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        
-        .legend {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .index-card {
-            text-align: center;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
-        
-        .index-value {
-            font-size: 2rem;
-            font-weight: 700;
-        }
-        
-        .farm-marker {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        footer {
+            margin-top: auto;
+            background: var(--primary-color);
             color: white;
-            font-weight: bold;
-            font-size: 14px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            padding: 2rem 0;
+        }
+        
+        .footer-links a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: white;
+        }
+        
+        /* Animation for notifications */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--secondary-color);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2980b9;
+        }
+        
+        /* Print styles */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+        }
+        
+        /* Message alerts */
+        .message-alert {
+            border-left: 4px solid;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .alert-success {
+            border-left-color: #28a745;
+        }
+        
+        .alert-error, .alert-danger {
+            border-left-color: #dc3545;
+        }
+        
+        .alert-warning {
+            border-left-color: #ffc107;
+        }
+        
+        .alert-info {
+            border-left-color: #17a2b8;
         }
     </style>
     
@@ -133,166 +280,320 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--primary-color);">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'map_view' %}">
+            <a class="navbar-brand" href="{% url 'dashboard' %}">
                 <i class="fas fa-tractor me-2"></i>
-                Machakos AIDSTTUP
+                <span class="d-none d-md-inline">Machakos Drought Insurance</span>
+                <span class="d-md-none">MDI</span>
             </a>
             
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
                 <span class="navbar-toggler-icon"></span>
             </button>
             
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" 
+                           href="{% url 'dashboard' %}">
+                            <i class="fas fa-home"></i>
+                            <span class="d-none d-md-inline">Dashboard</span>
+                        </a>
+                    </li>
+                    
                     {% if user.is_authenticated %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-user me-1"></i> {{ user.username }}
-                            </a>
-                            <ul class="dropdown-menu">
-                                {% if user.is_staff %}
-                                    <li><a class="dropdown-item" href="{% url 'admin:index' %}">
-                                        <i class="fas fa-cog me-2"></i>Admin Panel
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'dashboard' %}">
-                                        <i class="fas fa-chart-line me-2"></i>Dashboard
-                                    </a></li>
-                                {% endif %}
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'logout' %}">
-                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
-                                </a></li>
-                            </ul>
-                        </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'farm' in request.resolver_match.url_name %}active{% endif %}" 
+                           href="{% url 'farm_list' %}">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="d-none d-md-inline">Farms</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'satellite_analysis' %}active{% endif %}" 
+                           href="{% url 'satellite_analysis' %}">
+                            <i class="fas fa-satellite"></i>
+                            <span class="d-none d-md-inline">Analysis</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if 'policy' in request.resolver_match.url_name or 'claim' in request.resolver_match.url_name %}active{% endif %}" 
+                           href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-shield-alt"></i>
+                            <span class="d-none d-md-inline">Insurance</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'policy_list' %}">
+                                <i class="fas fa-file-contract me-2"></i> Policies
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'claim_list' %}">
+                                <i class="fas fa-file-invoice-dollar me-2"></i> Claims
+                            </a></li>
+                            {% if user.is_admin or user.user_type == 'insurance_agent' %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'policy_add' %}">
+                                <i class="fas fa-plus-circle me-2"></i> New Policy
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'claim_add' %}">
+                                <i class="fas fa-plus-circle me-2"></i> New Claim
+                            </a></li>
+                            {% endif %}
+                        </ul>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'map_view' %}active{% endif %}" 
+                           href="{% url 'map_view' %}">
+                            <i class="fas fa-map"></i>
+                            <span class="d-none d-md-inline">Map</span>
+                        </a>
+                    </li>
+                    
+                    {% if user.is_admin %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}" 
+                           href="{% url 'admin_dashboard' %}">
+                            <i class="fas fa-cogs"></i>
+                            <span class="d-none d-md-inline">Admin</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endif %}
+                </ul>
+                
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                    <!-- User Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i>
+                            <span class="d-none d-md-inline">{{ user.get_short_name|default:user.username }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li class="dropdown-header">
+                                <h6 class="mb-0">{{ user.get_full_name|default:user.username }}</h6>
+                                <small class="text-muted">
+                                    {% if user.is_admin %}
+                                    <span class="badge bg-primary">Administrator</span>
+                                    {% elif user.is_farmer %}
+                                    <span class="badge bg-success">Farmer</span>
+                                    {% elif user.user_type == 'insurance_agent' %}
+                                    <span class="badge bg-info">Insurance Agent</span>
+                                    {% elif user.user_type == 'analyst' %}
+                                    <span class="badge bg-warning">Data Analyst</span>
+                                    {% endif %}
+                                </small>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'user_profile' %}">
+                                    <i class="fas fa-user me-2"></i> Profile
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'change_password' %}">
+                                    <i class="fas fa-key me-2"></i> Change Password
+                                </a>
+                            </li>
+                            {% if user.is_admin %}
+                            <li>
+                                <a class="dropdown-item" href="/admin/" target="_blank">
+                                    <i class="fas fa-cog me-2"></i> Django Admin
+                                </a>
+                            </li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i> Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                     {% else %}
-                        <li class="nav-item">
-                            <a class="btn btn-outline-primary" href="{% url 'login' %}">
-                                <i class="fas fa-sign-in-alt me-1"></i> Login
-                            </a>
-                        </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">
+                            <i class="fas fa-sign-in-alt me-1"></i>
+                            <span class="d-none d-md-inline">Login</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'register' %}">
+                            <i class="fas fa-user-plus me-1"></i>
+                            <span class="d-none d-md-inline">Register</span>
+                        </a>
+                    </li>
                     {% endif %}
                 </ul>
             </div>
         </div>
     </nav>
-    
-    <!-- Main Content -->
+
+    <!-- Messages Display (Simplified) -->
+    {% if messages %}
+    <div class="container-fluid mt-3">
+        <div class="row">
+            <div class="col-12">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show message-alert" role="alert">
+                    <div class="d-flex align-items-center">
+                        {% if message.tags == 'success' %}
+                        <i class="fas fa-check-circle me-2"></i>
+                        {% elif message.tags == 'error' or message.tags == 'danger' %}
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        {% elif message.tags == 'warning' %}
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {% elif message.tags == 'info' %}
+                        <i class="fas fa-info-circle me-2"></i>
+                        {% endif %}
+                        <div>{{ message }}</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Main Content Area -->
     <div class="container-fluid">
         <div class="row">
-            <!-- Sidebar -->
-            {% if user.is_authenticated %}
-            <div class="col-lg-2 col-md-3 sidebar d-none d-md-block">
-                <div class="pt-4">
-                    <h5 class="text-center mb-4">
-                        <i class="fas fa-map-marked-alt me-2"></i>Navigation
-                    </h5>
-                    
+            <!-- Sidebar (Conditional based on user type and page) -->
+            {% if user.is_authenticated and user.is_admin and 'admin' in request.path %}
+            <div class="col-md-2 d-none d-md-block sidebar">
+                <div class="position-sticky pt-3">
+                    <div class="sidebar-header px-3 mb-3">
+                        <h6 class="text-uppercase text-muted">Administration</h6>
+                    </div>
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/farms/' %}active{% endif %}" 
-                               href="{% url 'map_view' %}">
-                                <i class="fas fa-map me-2"></i> Farm Map
+                            <a class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}" 
+                               href="{% url 'admin_dashboard' %}">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if 'dashboard' in request.path %}active{% endif %}" 
-                               href="{% url 'dashboard' %}">
-                                <i class="fas fa-chart-bar me-2"></i> Dashboard
+                            <a class="nav-link" href="/admin/" target="_blank">
+                                <i class="fas fa-cog"></i> Django Admin
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if 'analysis' in request.path %}active{% endif %}" 
-                               href="{% url 'satellite_analysis' %}">
-                                <i class="fas fa-satellite me-2"></i> Satellite Analysis
+                            <a class="nav-link" href="{% url 'farm_list' %}?show=all">
+                                <i class="fas fa-map-marker-alt"></i> All Farms
                             </a>
                         </li>
-                        
-                        
-                        
-                        <li class="nav-item mt-4">
-                            <small class="text-uppercase text-muted">Quick Actions</small>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'policy_list' %}">
+                                <i class="fas fa-file-contract"></i> All Policies
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <button class="nav-link" onclick="runAnalysis()">
-                                <i class="fas fa-play-circle me-2"></i> Run Analysis
-                            </button>
+                            <a class="nav-link" href="{% url 'claim_list' %}">
+                                <i class="fas fa-file-invoice-dollar"></i> All Claims
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <button class="nav-link" onclick="exportData()">
-                                <i class="fas fa-download me-2"></i> Export Data
-                            </button>
+                            <a class="nav-link" href="{% url 'batch_analysis' %}">
+                                <i class="fas fa-satellite"></i> Batch Analysis
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'test_gee' %}">
+                                <i class="fas fa-plug"></i> Test GEE
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'export_analysis' %}">
+                                <i class="fas fa-download"></i> Export Data
+                            </a>
                         </li>
                     </ul>
-                    
-                    <div class="mt-5 p-3" style="background: rgba(255,255,255,0.1); border-radius: 8px;">
-                        <small class="d-block">Last Updated</small>
-                        <div id="last-updated">Just now</div>
-                        
-                        <div class="mt-3">
-                            <small class="d-block">System Status</small>
-                            <div class="d-flex align-items-center">
-                                <div id="gee-status" class="badge bg-success me-2">GEE: Connected</div>
-                                <div id="api-status" class="badge bg-success">API: Online</div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
             {% endif %}
             
-            <!-- Main Content Area -->
-            <div class="{% if user.is_authenticated %}col-lg-10 col-md-9{% else %}col-12{% endif %}">
-                <div class="p-4">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                    
+            <!-- Main Content -->
+            <div class="{% if user.is_authenticated and user.is_admin and 'admin' in request.path %}col-md-10{% else %}col-12{% endif %}">
+                <main class="main-content fade-in">
                     {% block content %}
-                    <!-- Page content goes here -->
+                    <!-- Content will be injected here -->
                     {% endblock %}
-                </div>
+                </main>
             </div>
         </div>
     </div>
-    
+
     <!-- Footer -->
-    <footer class="bg-dark text-white py-4 mt-5">
+    <footer class="no-print">
         <div class="container">
             <div class="row">
-                <div class="col-md-6">
-                    <h5>Machakos AIDSTTUP</h5>
-                    <p class="mb-0">AI for Drought Smart Technology for The Up Project</p>
-                    <small>© {% now "Y" %} - All rights reserved</small>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <p class="mb-1">Powered by:</p>
-                    <div class="d-flex justify-content-md-end gap-3">
-                        <span class="badge bg-secondary">Django</span>
-                        <span class="badge bg-secondary">Google Earth Engine</span>
-                        <span class="badge bg-secondary">PostgreSQL/PostGIS</span>
-                        <span class="badge bg-secondary">Leaflet</span>
-                    </div>
-                    <p class="mt-2 mb-0">
-                        <small>Data Sources: Sentinel-2, CHIRPS, Machakos County GIS</small>
+                <div class="col-lg-4 mb-4">
+                    <h5 class="mb-3">
+                        <i class="fas fa-tractor me-2"></i>Machakos Drought Insurance
+                    </h5>
+                    <p class="mb-0">
+                        Satellite-based drought monitoring and insurance system 
+                        for Machakos County farmers.
                     </p>
+                </div>
+                <div class="col-lg-2 col-md-4 mb-4">
+                    <h6>Quick Links</h6>
+                    <ul class="list-unstyled footer-links">
+                        <li class="mb-2"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                        <li class="mb-2"><a href="{% url 'farm_list' %}">Farms</a></li>
+                        <li class="mb-2"><a href="{% url 'satellite_analysis' %}">Analysis</a></li>
+                        <li class="mb-2"><a href="{% url 'policy_list' %}">Insurance</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-4 mb-4">
+                    <h6>Contact</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-phone me-2"></i>
+                            <span>+254 700 000 000</span>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-envelope me-2"></i>
+                            <span>info@machakosdrought.co.ke</span>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            <span>Machakos County, Kenya</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="bg-light my-4">
+            <div class="row">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="mb-0">&copy; {% now "Y" %} Machakos Drought Insurance System</p>
                 </div>
             </div>
         </div>
     </footer>
-    
-    <!-- Scripts -->
+
+    <!-- JavaScript Libraries -->
+    <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <!-- Toastr -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     
-    <!-- CSRF Token for AJAX -->
+    <!-- Global JavaScript -->
     <script>
+        // CSRF Token Setup
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -309,112 +610,321 @@
         }
         
         const csrftoken = getCookie('csrftoken');
-    </script>
-    
-    <!-- Utility Functions -->
-    <script>
-        function showLoading(message = 'Processing...') {
-            // Create loading overlay
-            const overlay = document.createElement('div');
-            overlay.id = 'loading-overlay';
-            overlay.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.7);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 9999;
-                color: white;
-                font-size: 1.2rem;
-            `;
-            overlay.innerHTML = `
-                <div class="text-center">
-                    <div class="spinner-border mb-3" role="status"></div>
-                    <div>${message}</div>
-                </div>
-            `;
-            document.body.appendChild(overlay);
-        }
         
-        function hideLoading() {
-            const overlay = document.getElementById('loading-overlay');
-            if (overlay) overlay.remove();
-        }
-        
-        function showToast(message, type = 'success') {
-            const toastContainer = document.getElementById('toast-container') || (() => {
-                const container = document.createElement('div');
-                container.id = 'toast-container';
-                container.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    z-index: 9999;
-                `;
-                document.body.appendChild(container);
-                return container;
-            })();
-            
-            const toastId = 'toast-' + Date.now();
-            const toast = document.createElement('div');
-            toast.id = toastId;
-            toast.className = `toast align-items-center text-white bg-${type} border-0`;
-            toast.setAttribute('role', 'alert');
-            toast.innerHTML = `
-                <div class="d-flex">
-                    <div class="toast-body">
-                        ${message}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="document.getElementById('${toastId}').remove()"></button>
-                </div>
-            `;
-            
-            toastContainer.appendChild(toast);
-            
-            // Auto remove after 5 seconds
-            setTimeout(() => {
-                if (document.getElementById(toastId)) {
-                    document.getElementById(toastId).remove();
+        // Configure AJAX globally
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
                 }
+            }
+        });
+        
+        // Toastr Configuration
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": false,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "5000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        };
+        
+        // Auto-dismiss alerts after 5 seconds
+        $(document).ready(function() {
+            setTimeout(function() {
+                $('.alert').alert('close');
             }, 5000);
-        }
+            
+            // Initialize tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
         
-        async function makeRequest(url, method = 'GET', data = null) {
-            const options = {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken
+        // Global Utility Functions
+        window.App = {
+            // Format number with commas
+            formatNumber: function(num) {
+                if (num === null || num === undefined) return '0';
+                return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            },
+            
+            // Format currency
+            formatCurrency: function(amount) {
+                if (amount === null || amount === undefined) return 'KES 0.00';
+                return 'KES ' + parseFloat(amount).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+            },
+            
+            // Show loading spinner
+            showLoading: function(element = null) {
+                if (element) {
+                    $(element).addClass('disabled').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...');
+                } else {
+                    $('#loadingSpinner').removeClass('d-none');
                 }
-            };
+            },
             
-            if (data) {
-                options.body = JSON.stringify(data);
-            }
+            // Hide loading spinner
+            hideLoading: function(element = null) {
+                if (element) {
+                    $(element).removeClass('disabled').html('Submit');
+                } else {
+                    $('#loadingSpinner').addClass('d-none');
+                }
+            },
             
-            try {
-                const response = await fetch(url, options);
-                return await response.json();
-            } catch (error) {
-                console.error('Request failed:', error);
-                showToast('Request failed: ' + error.message, 'danger');
-                return { success: false, error: error.message };
+            // Handle AJAX errors
+            handleAjaxError: function(xhr, textStatus, errorThrown) {
+                console.error('AJAX Error:', textStatus, errorThrown);
+                let errorMessage = 'An error occurred. Please try again.';
+                
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMessage = xhr.responseJSON.error;
+                } else if (xhr.status === 0) {
+                    errorMessage = 'Network error. Please check your connection.';
+                } else if (xhr.status === 403) {
+                    errorMessage = 'You are not authorized to perform this action.';
+                } else if (xhr.status === 404) {
+                    errorMessage = 'Requested resource not found.';
+                } else if (xhr.status === 500) {
+                    errorMessage = 'Server error. Please try again later.';
+                }
+                
+                toastr.error(errorMessage, 'Error');
+            },
+            
+            // Map utilities
+            Map: {
+                // Initialize Leaflet map
+                initMap: function(elementId, options = {}) {
+                    const defaults = {
+                        center: [-1.5167, 37.2667], // Machakos center
+                        zoom: 10,
+                        minZoom: 8,
+                        maxZoom: 18,
+                        attributionControl: true
+                    };
+                    
+                    const config = { ...defaults, ...options };
+                    const map = L.map(elementId, config);
+                    
+                    // Add tile layer
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(map);
+                    
+                    return map;
+                },
+                
+                // Create farm marker
+                createFarmMarker: function(farm, options = {}) {
+                    const defaults = {
+                        title: farm.name || farm.farm_id,
+                        draggable: false,
+                        riseOnHover: true
+                    };
+                    
+                    const config = { ...defaults, ...options };
+                    const marker = L.marker([farm.latitude, farm.longitude], config);
+                    
+                    // Customize marker based on risk level
+                    let iconColor = 'green';
+                    if (farm.risk_level === 'moderate') iconColor = 'orange';
+                    if (farm.risk_level === 'high') iconColor = 'red';
+                    
+                    marker.setIcon(L.divIcon({
+                        className: 'custom-marker',
+                        html: `<div style="background-color: ${iconColor}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 3px rgba(0,0,0,0.5);"></div>`,
+                        iconSize: [16, 16],
+                        iconAnchor: [8, 8]
+                    }));
+                    
+                    // Add popup
+                    let popupContent = `
+                        <div class="farm-popup">
+                            <h6 class="mb-1">${farm.name || farm.farm_id}</h6>
+                            <p class="mb-1 small">Farm ID: ${farm.farm_id}</p>
+                            <p class="mb-1 small">Farmer: ${farm.farmer}</p>
+                            <p class="mb-1 small">Crop: ${farm.crop}</p>
+                            <p class="mb-1 small">Area: ${farm.area_ha} ha</p>
+                            <p class="mb-1 small">Risk: <span class="risk-badge risk-${farm.risk_level}">${farm.risk_level}</span></p>
+                            <p class="mb-1 small">NDVI: ${farm.ndvi ? farm.ndvi.toFixed(3) : 'N/A'}</p>
+                        </div>
+                    `;
+                    
+                    marker.bindPopup(popupContent);
+                    return marker;
+                }
+            },
+            
+            // Chart utilities
+            Charts: {
+                // Create line chart
+                createLineChart: function(canvasId, data, options = {}) {
+                    const ctx = document.getElementById(canvasId).getContext('2d');
+                    
+                    const defaults = {
+                        type: 'line',
+                        data: data,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                },
+                                tooltip: {
+                                    mode: 'index',
+                                    intersect: false,
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: {
+                                        display: false
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {
+                                        borderDash: [2]
+                                    }
+                                }
+                            }
+                        }
+                    };
+                    
+                    const config = { ...defaults, ...options };
+                    return new Chart(ctx, config);
+                },
+                
+                // Create bar chart
+                createBarChart: function(canvasId, data, options = {}) {
+                    const ctx = document.getElementById(canvasId).getContext('2d');
+                    
+                    const defaults = {
+                        type: 'bar',
+                        data: data,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: {
+                                        display: false
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {
+                                        borderDash: [2]
+                                    }
+                                }
+                            }
+                        }
+                    };
+                    
+                    const config = { ...defaults, ...options };
+                    return new Chart(ctx, config);
+                },
+                
+                // Create doughnut chart
+                createDoughnutChart: function(canvasId, data, options = {}) {
+                    const ctx = document.getElementById(canvasId).getContext('2d');
+                    
+                    const defaults = {
+                        type: 'doughnut',
+                        data: data,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'right',
+                                }
+                            },
+                            cutout: '70%'
+                        }
+                    };
+                    
+                    const config = { ...defaults, ...options };
+                    return new Chart(ctx, config);
+                }
+            },
+            
+            // Insurance specific functions
+            Insurance: {
+                // Calculate insurance payout
+                calculatePayout: function(policy, analysis) {
+                    if (!policy || !analysis) return 0;
+                    
+                    let payout = 0;
+                    const sumInsured = parseFloat(policy.sum_insured);
+                    
+                    // NDVI trigger
+                    if (analysis.ndvi && analysis.ndvi < policy.ndvi_trigger) {
+                        const severity = (policy.ndvi_trigger - analysis.ndvi) / policy.ndvi_trigger;
+                        payout += sumInsured * severity * 0.4;
+                    }
+                    
+                    // Rainfall trigger
+                    if (analysis.rainfall_mm && analysis.rainfall_mm < policy.rainfall_trigger) {
+                        const severity = (policy.rainfall_trigger - analysis.rainfall_mm) / policy.rainfall_trigger;
+                        payout += sumInsured * severity * 0.4;
+                    }
+                    
+                    // Apply payout rate and deductible
+                    payout = payout * policy.payout_rate;
+                    payout = Math.max(payout - parseFloat(policy.deductible), 0);
+                    payout = Math.min(payout, parseFloat(policy.max_payout));
+                    
+                    return Math.round(payout * 100) / 100;
+                },
+                
+                // Get policy status color
+                getStatusColor: function(status) {
+                    const colors = {
+                        'active': 'success',
+                        'pending': 'warning',
+                        'expired': 'secondary',
+                        'suspended': 'danger',
+                        'claimed': 'info',
+                        'cancelled': 'dark'
+                    };
+                    return colors[status] || 'secondary';
+                },
+                
+                // Get claim status color
+                getClaimStatusColor: function(status) {
+                    const colors = {
+                        'draft': 'secondary',
+                        'submitted': 'info',
+                        'under_review': 'warning',
+                        'approved': 'success',
+                        'rejected': 'danger',
+                        'paid': 'success',
+                        'closed': 'dark'
+                    };
+                    return colors[status] || 'secondary';
+                }
             }
-        }
-        
-        function updateLastUpdated() {
-            const now = new Date();
-            document.getElementById('last-updated').textContent = 
-                now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        }
-        
-        // Update time every minute
-        setInterval(updateLastUpdated, 60000);
-        updateLastUpdated();
+        };
     </script>
     
     {% block extra_js %}{% endblock %}
