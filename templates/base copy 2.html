@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Machakos Drought Monitoring & Insurance{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
+    <!-- Leaflet Draw CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <!-- Toastr CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        
+        .sidebar {
+            background: var(--primary-color);
+            min-height: calc(100vh - 56px);
+            color: white;
+            transition: all 0.3s;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 0.75rem 1rem;
+            border-left: 3px solid transparent;
+        }
+        
+        .sidebar .nav-link:hover {
+            color: white;
+            background: rgba(255,255,255,0.1);
+            border-left: 3px solid var(--secondary-color);
+        }
+        
+        .sidebar .nav-link.active {
+            color: white;
+            background: rgba(255,255,255,0.15);
+            border-left: 3px solid var(--secondary-color);
+        }
+        
+        .sidebar .nav-link i {
+            width: 20px;
+            margin-right: 10px;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .stat-card {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            height: 100%;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
+        .stat-card .card-body {
+            padding: 1.5rem;
+        }
+        
+        .stat-icon {
+            font-size: 2.5rem;
+            opacity: 0.8;
+        }
+        
+        .risk-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        .risk-low {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .risk-moderate {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .risk-high {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        .status-active {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-paid {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .map-container {
+            height: 500px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #dee2e6;
+        }
+        
+        .leaflet-container {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .notification-dot {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 8px;
+            height: 8px;
+            background-color: var(--danger-color);
+            border-radius: 50%;
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 2px solid var(--light-color);
+            font-weight: 600;
+        }
+        
+        footer {
+            margin-top: auto;
+            background: var(--primary-color);
+            color: white;
+            padding: 2rem 0;
+        }
+        
+        .footer-links a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: white;
+        }
+        
+        /* Animation for notifications */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--secondary-color);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2980b9;
+        }
+        
+        /* Print styles */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--primary-color);">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'dashboard' %}">
+                <i class="fas fa-tractor me-2"></i>
+                <span class="d-none d-md-inline">Machakos Drought Insurance</span>
+                <span class="d-md-none">MDI</span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" 
+                           href="{% url 'dashboard' %}">
+                            <i class="fas fa-home"></i>
+                            <span class="d-none d-md-inline">Dashboard</span>
+                        </a>
+                    </li>
+                    
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'farm' in request.resolver_match.url_name %}active{% endif %}" 
+                           href="{% url 'farm_list' %}">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="d-none d-md-inline">Farms</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'satellite_analysis' %}active{% endif %}" 
+                           href="{% url 'satellite_analysis' %}">
+                            <i class="fas fa-satellite"></i>
+                            <span class="d-none d-md-inline">Analysis</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if 'policy' in request.resolver_match.url_name or 'claim' in request.resolver_match.url_name %}active{% endif %}" 
+                           href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-shield-alt"></i>
+                            <span class="d-none d-md-inline">Insurance</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'policy_list' %}">
+                                <i class="fas fa-file-contract me-2"></i> Policies
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'claim_list' %}">
+                                <i class="fas fa-file-invoice-dollar me-2"></i> Claims
+                            </a></li>
+                            {% if user.is_admin or user.user_type == 'insurance_agent' %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'policy_add' %}">
+                                <i class="fas fa-plus-circle me-2"></i> New Policy
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'claim_add' %}">
+                                <i class="fas fa-plus-circle me-2"></i> New Claim
+                            </a></li>
+                            {% endif %}
+                        </ul>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'map_view' %}active{% endif %}" 
+                           href="{% url 'map_view' %}">
+                            <i class="fas fa-map"></i>
+                            <span class="d-none d-md-inline">Map</span>
+                        </a>
+                    </li>
+                    
+                    {% if user.is_admin %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}" 
+                           href="{% url 'admin_dashboard' %}">
+                            <i class="fas fa-cogs"></i>
+                            <span class="d-none d-md-inline">Admin</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endif %}
+                </ul>
+                
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                    <!-- Notifications Dropdown -->
+                    <li class="nav-item dropdown me-2">
+                        <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-bell"></i>
+                            {% with unread_count=user.notifications.filter(is_read=False).count %}
+                    {% if unread_count > 0 %}
+                    <span class="notification-dot"></span>
+                    <span class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle">
+                        {{ unread_count }}
+                        <span class="visually-hidden">unread notifications</span>
+                    </span>
+                    {% endif %}
+                    {% endwith %}
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end dropdown-menu-lg p-0" style="min-width: 300px;">
+                            <div class="dropdown-header">
+                                <h6 class="mb-0">Notifications</h6>
+                               {% with unread_count=user.notifications.filter.is_read=False.count %}
+                                            <small class="text-muted">You have {{ unread_count }} unread</small>
+                                            {% endwith %}
+                            </div>
+                            <div class="list-group" style="max-height: 300px; overflow-y: auto;">
+                               {% for notification in user.notifications.all|slice:":5" %}
+                                {% if not notification.is_read %}
+                                <a href="{% url 'mark_notification_read' notification.id %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ notification.title|truncatechars:40 }}</h6>
+                                        <small>{{ notification.created_at|timesince }} ago</small>
+                                    </div>
+                                    <p class="mb-1 small">{{ notification.message|truncatechars:60 }}</p>
+                                </a>
+                                {% empty %}
+                                <div class="list-group-item text-center text-muted">
+                                    No new notifications
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div class="dropdown-footer text-center p-2">
+                                <a href="{% url 'notifications' %}" class="btn btn-sm btn-outline-primary w-100">
+                                    View All Notifications
+                                </a>
+                            </div>
+                        </div>
+                    </li>
+                    
+                    <!-- User Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i>
+                            <span class="d-none d-md-inline">{{ user.get_short_name|default:user.username }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li class="dropdown-header">
+                                <h6 class="mb-0">{{ user.get_full_name|default:user.username }}</h6>
+                                <small class="text-muted">
+                                    {% if user.is_admin %}
+                                    <span class="badge bg-primary">Administrator</span>
+                                    {% elif user.is_farmer %}
+                                    <span class="badge bg-success">Farmer</span>
+                                    {% elif user.user_type == 'insurance_agent' %}
+                                    <span class="badge bg-info">Insurance Agent</span>
+                                    {% elif user.user_type == 'analyst' %}
+                                    <span class="badge bg-warning">Data Analyst</span>
+                                    {% endif %}
+                                </small>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'user_profile' %}">
+                                    <i class="fas fa-user me-2"></i> Profile
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'notifications' %}">
+                                    <i class="fas fa-bell me-2"></i> Notifications
+                                   {% with unread_count=user.notifications.filter.is_read=False.count %}
+{% if unread_count > 0 %}
+<span class="badge bg-danger float-end">{{ unread_count }}</span>
+{% endif %}
+{% endwith %}
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'change_password' %}">
+                                    <i class="fas fa-key me-2"></i> Change Password
+                                </a>
+                            </li>
+                            {% if user.is_admin %}
+                            <li>
+                                <a class="dropdown-item" href="/admin/" target="_blank">
+                                    <i class="fas fa-cog me-2"></i> Django Admin
+                                </a>
+                            </li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i> Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">
+                            <i class="fas fa-sign-in-alt me-1"></i>
+                            <span class="d-none d-md-inline">Login</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'register' %}">
+                            <i class="fas fa-user-plus me-1"></i>
+                            <span class="d-none d-md-inline">Register</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages Display -->
+    {% if messages %}
+    <div class="container-fluid mt-3">
+        <div class="row">
+            <div class="col-12">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                    <div class="d-flex align-items-center">
+                        {% if message.tags == 'success' %}
+                        <i class="fas fa-check-circle me-2"></i>
+                        {% elif message.tags == 'error' or message.tags == 'danger' %}
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        {% elif message.tags == 'warning' %}
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {% elif message.tags == 'info' %}
+                        <i class="fas fa-info-circle me-2"></i>
+                        {% endif %}
+                        <div>{{ message }}</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Main Content Area -->
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar (Conditional based on user type and page) -->
+            {% if user.is_authenticated and user.is_admin and 'admin' in request.path %}
+            <div class="col-md-2 d-none d-md-block sidebar">
+                <div class="position-sticky pt-3">
+                    <div class="sidebar-header px-3 mb-3">
+                        <h6 class="text-uppercase text-muted">Administration</h6>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}" 
+                               href="{% url 'admin_dashboard' %}">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/" target="_blank">
+                                <i class="fas fa-cog"></i> Django Admin
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'farm_list' %}?show=all">
+                                <i class="fas fa-map-marker-alt"></i> All Farms
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'policy_list' %}">
+                                <i class="fas fa-file-contract"></i> All Policies
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'claim_list' %}">
+                                <i class="fas fa-file-invoice-dollar"></i> All Claims
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'batch_analysis' %}">
+                                <i class="fas fa-satellite"></i> Batch Analysis
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'test_gee' %}">
+                                <i class="fas fa-plug"></i> Test GEE
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'export_analysis' %}">
+                                <i class="fas fa-download"></i> Export Data
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="sidebar-header px-3 mt-4 mb-3">
+                        <h6 class="text-uppercase text-muted">Reports</h6>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-chart-bar"></i> Risk Reports
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-chart-line"></i> Trends
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-file-invoice"></i> Financial
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Main Content -->
+            <div class="{% if user.is_authenticated and user.is_admin and 'admin' in request.path %}col-md-10{% else %}col-12{% endif %}">
+                <main class="main-content fade-in">
+                    {% block content %}
+                    <!-- Content will be injected here -->
+                    {% endblock %}
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="no-print">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5 class="mb-3">
+                        <i class="fas fa-tractor me-2"></i>Machakos Drought Insurance
+                    </h5>
+                    <p class="mb-0">
+                        Satellite-based drought monitoring and insurance system 
+                        for Machakos County farmers. Protecting livelihoods through 
+                        technology and innovation.
+                    </p>
+                </div>
+                <div class="col-lg-2 col-md-4 mb-4">
+                    <h6>Quick Links</h6>
+                    <ul class="list-unstyled footer-links">
+                        <li class="mb-2"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                        <li class="mb-2"><a href="{% url 'farm_list' %}">My Farms</a></li>
+                        <li class="mb-2"><a href="{% url 'satellite_analysis' %}">Analysis</a></li>
+                        <li class="mb-2"><a href="{% url 'policy_list' %}">Insurance</a></li>
+                        <li class="mb-2"><a href="{% url 'map_view' %}">Map View</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-4 mb-4">
+                    <h6>Resources</h6>
+                    <ul class="list-unstyled footer-links">
+                        <li class="mb-2"><a href="#">User Guide</a></li>
+                        <li class="mb-2"><a href="#">FAQs</a></li>
+                        <li class="mb-2"><a href="#">Insurance Terms</a></li>
+                        <li class="mb-2"><a href="#">Privacy Policy</a></li>
+                        <li class="mb-2"><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-4 mb-4">
+                    <h6>Contact Us</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-phone me-2"></i>
+                            <span>+254 700 000 000</span>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-envelope me-2"></i>
+                            <span>support@machakosdrought.co.ke</span>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            <span>Machakos County, Kenya</span>
+                        </li>
+                        <li class="mt-3">
+                            <a href="#" class="me-2 text-white"><i class="fab fa-facebook fa-lg"></i></a>
+                            <a href="#" class="me-2 text-white"><i class="fab fa-twitter fa-lg"></i></a>
+                            <a href="#" class="me-2 text-white"><i class="fab fa-instagram fa-lg"></i></a>
+                            <a href="#" class="text-white"><i class="fab fa-linkedin fa-lg"></i></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="bg-light my-4">
+            <div class="row">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="mb-0">&copy; {% now "Y" %} Machakos County Government. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <p class="mb-0">
+                        Developed with <i class="fas fa-heart text-danger"></i> for Machakos Farmers
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Libraries -->
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+    <!-- Leaflet Draw -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <!-- Toastr -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <!-- Moment.js for date handling -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    
+    <!-- Global JavaScript -->
+    <script>
+        // CSRF Token Setup
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        const csrftoken = getCookie('csrftoken');
+        
+        // Configure AJAX globally
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+        
+        // Toastr Configuration
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": false,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "5000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        };
+        
+        // Auto-dismiss alerts after 5 seconds
+        $(document).ready(function() {
+            setTimeout(function() {
+                $('.alert').alert('close');
+            }, 5000);
+            
+            // Initialize tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            
+            // Initialize popovers
+            var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+            var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+                return new bootstrap.Popover(popoverTriggerEl);
+            });
+        });
+        
+        // Global Utility Functions
+        window.App = {
+            // Format number with commas
+            formatNumber: function(num) {
+                if (num === null || num === undefined) return '0';
+                return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            },
+            
+            // Format currency
+            formatCurrency: function(amount) {
+                if (amount === null || amount === undefined) return 'KES 0.00';
+                return 'KES ' + parseFloat(amount).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+            },
+            
+            // Format date
+            formatDate: function(dateStr, format = 'YYYY-MM-DD') {
+                if (!dateStr) return '';
+                return moment(dateStr).format(format);
+            },
+            
+            // Show loading spinner
+            showLoading: function(element = null) {
+                if (element) {
+                    $(element).addClass('disabled').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...');
+                } else {
+                    $('#loadingSpinner').removeClass('d-none');
+                }
+            },
+            
+            // Hide loading spinner
+            hideLoading: function(element = null) {
+                if (element) {
+                    $(element).removeClass('disabled').html('Submit');
+                } else {
+                    $('#loadingSpinner').addClass('d-none');
+                }
+            },
+            
+            // Handle AJAX errors
+            handleAjaxError: function(xhr, textStatus, errorThrown) {
+                console.error('AJAX Error:', textStatus, errorThrown);
+                let errorMessage = 'An error occurred. Please try again.';
+                
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMessage = xhr.responseJSON.error;
+                } else if (xhr.status === 0) {
+                    errorMessage = 'Network error. Please check your connection.';
+                } else if (xhr.status === 403) {
+                    errorMessage = 'You are not authorized to perform this action.';
+                } else if (xhr.status === 404) {
+                    errorMessage = 'Requested resource not found.';
+                } else if (xhr.status === 500) {
+                    errorMessage = 'Server error. Please try again later.';
+                }
+                
+                toastr.error(errorMessage, 'Error');
+            },
+            
+            // Map utilities
+            Map: {
+                // Initialize Leaflet map
+                initMap: function(elementId, options = {}) {
+                    const defaults = {
+                        center: [-1.5167, 37.2667], // Machakos center
+                        zoom: 10,
+                        minZoom: 8,
+                        maxZoom: 18,
+                        attributionControl: true
+                    };
+                    
+                    const config = { ...defaults, ...options };
+                    const map = L.map(elementId, config);
+                    
+                    // Add tile layer
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(map);
+                    
+                    return map;
+                },
+                
+                // Create farm marker
+                createFarmMarker: function(farm, options = {}) {
+                    const defaults = {
+                        title: farm.name || farm.farm_id,
+                        draggable: false,
+                        riseOnHover: true
+                    };
+                    
+                    const config = { ...defaults, ...options };
+                    const marker = L.marker([farm.latitude, farm.longitude], config);
+                    
+                    // Customize marker based on risk level
+                    let iconColor = 'green';
+                    if (farm.risk_level === 'moderate') iconColor = 'orange';
+                    if (farm.risk_level === 'high') iconColor = 'red';
+                    
+                    marker.setIcon(L.divIcon({
+                        className: 'custom-marker',
+                        html: `<div style="background-color: ${iconColor}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 3px rgba(0,0,0,0.5);"></div>`,
+                        iconSize: [16, 16],
+                        iconAnchor: [8, 8]
+                    }));
+                    
+                    // Add popup
+                    let popupContent = `
+                        <div class="farm-popup">
+                            <h6 class="mb-1">${farm.name || farm.farm_id}</h6>
+                            <p class="mb-1 small">Farm ID: ${farm.farm_id}</p>
+                            <p class="mb-1 small">Farmer: ${farm.farmer}</p>
+                            <p class="mb-1 small">Crop: ${farm.crop}</p>
+                            <p class="mb-1 small">Area: ${farm.area_ha} ha</p>
+                            <p class="mb-1 small">Risk: <span class="risk-badge risk-${farm.risk_level}">${farm.risk_level}</span></p>
+                            <p class="mb-1 small">NDVI: ${farm.ndvi ? farm.ndvi.toFixed(3) : 'N/A'}</p>
+                            ${farm.insurance_triggered ? '<p class="mb-0 small text-danger"><i class="fas fa-exclamation-triangle"></i> Insurance Triggered</p>' : ''}
+                        </div>
+                    `;
+                    
+                    marker.bindPopup(popupContent);
+                    return marker;
+                },
+                
+                // Draw farm boundary
+                drawFarmBoundary: function(map, coordinates) {
+                    if (!coordinates || !Array.isArray(coordinates)) return null;
+                    
+                    const polygon = L.polygon(coordinates, {
+                        color: '#3388ff',
+                        weight: 2,
+                        opacity: 0.8,
+                        fillColor: '#3388ff',
+                        fillOpacity: 0.2
+                    }).addTo(map);
+                    
+                    return polygon;
+                }
+            },
+            
+            // Chart utilities
+            Charts: {
+                // Create line chart
+                createLineChart: function(canvasId, data, options = {}) {
+                    const ctx = document.getElementById(canvasId).getContext('2d');
+                    
+                    const defaults = {
+                        type: 'line',
+                        data: data,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                },
+                                tooltip: {
+                                    mode: 'index',
+                                    intersect: false,
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: {
+                                        display: false
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {
+                                        borderDash: [2]
+                                    }
+                                }
+                            }
+                        }
+                    };
+                    
+                    const config = { ...defaults, ...options };
+                    return new Chart(ctx, config);
+                },
+                
+                // Create bar chart
+                createBarChart: function(canvasId, data, options = {}) {
+                    const ctx = document.getElementById(canvasId).getContext('2d');
+                    
+                    const defaults = {
+                        type: 'bar',
+                        data: data,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: {
+                                        display: false
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {
+                                        borderDash: [2]
+                                    }
+                                }
+                            }
+                        }
+                    };
+                    
+                    const config = { ...defaults, ...options };
+                    return new Chart(ctx, config);
+                },
+                
+                // Create doughnut chart
+                createDoughnutChart: function(canvasId, data, options = {}) {
+                    const ctx = document.getElementById(canvasId).getContext('2d');
+                    
+                    const defaults = {
+                        type: 'doughnut',
+                        data: data,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'right',
+                                }
+                            },
+                            cutout: '70%'
+                        }
+                    };
+                    
+                    const config = { ...defaults, ...options };
+                    return new Chart(ctx, config);
+                }
+            },
+            
+            // Insurance specific functions
+            Insurance: {
+                // Calculate insurance payout
+                calculatePayout: function(policy, analysis) {
+                    if (!policy || !analysis) return 0;
+                    
+                    let payout = 0;
+                    const sumInsured = parseFloat(policy.sum_insured);
+                    
+                    // NDVI trigger
+                    if (analysis.ndvi && analysis.ndvi < policy.ndvi_trigger) {
+                        const severity = (policy.ndvi_trigger - analysis.ndvi) / policy.ndvi_trigger;
+                        payout += sumInsured * severity * 0.4;
+                    }
+                    
+                    // Rainfall trigger
+                    if (analysis.rainfall_mm && analysis.rainfall_mm < policy.rainfall_trigger) {
+                        const severity = (policy.rainfall_trigger - analysis.rainfall_mm) / policy.rainfall_trigger;
+                        payout += sumInsured * severity * 0.4;
+                    }
+                    
+                    // Risk level trigger
+                    if (policy.risk_level_trigger === 'moderate' && analysis.drought_risk_level in ['moderate', 'high']) {
+                        payout += sumInsured * 0.2;
+                    } else if (policy.risk_level_trigger === 'high' && analysis.drought_risk_level === 'high') {
+                        payout += sumInsured * 0.2;
+                    }
+                    
+                    // Apply payout rate and deductible
+                    payout = payout * policy.payout_rate;
+                    payout = Math.max(payout - parseFloat(policy.deductible), 0);
+                    payout = Math.min(payout, parseFloat(policy.max_payout));
+                    
+                    return Math.round(payout * 100) / 100;
+                },
+                
+                // Get policy status color
+                getStatusColor: function(status) {
+                    const colors = {
+                        'active': 'success',
+                        'pending': 'warning',
+                        'expired': 'secondary',
+                        'suspended': 'danger',
+                        'claimed': 'info',
+                        'cancelled': 'dark'
+                    };
+                    return colors[status] || 'secondary';
+                },
+                
+                // Get claim status color
+                getClaimStatusColor: function(status) {
+                    const colors = {
+                        'draft': 'secondary',
+                        'submitted': 'info',
+                        'under_review': 'warning',
+                        'approved': 'success',
+                        'rejected': 'danger',
+                        'paid': 'success',
+                        'closed': 'dark'
+                    };
+                    return colors[status] || 'secondary';
+                }
+            },
+            
+            // GEE Analysis functions
+            GEE: {
+                // Run analysis for a farm
+                runFarmAnalysis: function(farmId, year, month, callback) {
+                    $.ajax({
+                        url: '/farms/analysis/run/',
+                        type: 'POST',
+                        data: JSON.stringify({
+                            farm_id: farmId,
+                            year: year,
+                            month: month
+                        }),
+                        contentType: 'application/json',
+                        success: function(response) {
+                            if (callback) callback(null, response);
+                        },
+                        error: function(xhr) {
+                            App.handleAjaxError(xhr);
+                            if (callback) callback(xhr);
+                        }
+                    });
+                },
+                
+                // Get analysis data for a farm
+                getFarmAnalysis: function(farmId, callback) {
+                    $.ajax({
+                        url: `/farms/analysis/${farmId}/data/`,
+                        type: 'GET',
+                        success: function(response) {
+                            if (callback) callback(null, response);
+                        },
+                        error: function(xhr) {
+                            App.handleAjaxError(xhr);
+                            if (callback) callback(xhr);
+                        }
+                    });
+                }
+            }
+        };
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

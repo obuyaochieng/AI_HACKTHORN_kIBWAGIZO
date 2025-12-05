@@ -82,7 +82,8 @@ DATABASES = {
 
 
 
-
+# Add this to settings.py
+AUTH_USER_MODEL = 'farms.CustomUser'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = '/farms/'
 LOGOUT_REDIRECT_URL = '/'

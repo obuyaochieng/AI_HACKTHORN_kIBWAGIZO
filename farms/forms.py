@@ -9,7 +9,8 @@ import json
 
 from .models import CustomUser, UserProfile, Farm, County, InsurancePolicy, InsuranceClaim
 
-CustomUser = get_user_model()
+# Use the custom user model
+User = get_user_model()
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -19,14 +20,14 @@ class CustomUserCreationForm(UserCreationForm):
     national_id = forms.CharField(max_length=20, required=False)
     
     class Meta:
-        model = CustomUser
+        model = User  # Use the custom user model
         fields = ('username', 'email', 'phone', 'national_id', 
                  'first_name', 'last_name', 'user_type')
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Make user_type dropdown nicer
-        self.fields['user_type'].choices = CustomUser.USER_TYPES
+        self.fields['user_type'].choices = User.USER_TYPES
         
         # Add Bootstrap classes
         for field in self.fields:
@@ -34,13 +35,13 @@ class CustomUserCreationForm(UserCreationForm):
     
     def clean_email(self):
         email = self.cleaned_data.get('email')
-        if CustomUser.objects.filter(email=email).exists():
+        if User.objects.filter(email=email).exists():
             raise ValidationError('Email already exists')
         return email
     
     def clean_national_id(self):
         national_id = self.cleaned_data.get('national_id')
-        if national_id and CustomUser.objects.filter(national_id=national_id).exists():
+        if national_id and User.objects.filter(national_id=national_id).exists():
             raise ValidationError('National ID already registered')
         return national_id
 
@@ -48,7 +49,7 @@ class CustomUserCreationForm(UserCreationForm):
 class CustomUserChangeForm(UserChangeForm):
     """Form for updating users"""
     class Meta:
-        model = CustomUser
+        model = User  # Use the custom user model
         fields = ('username', 'email', 'phone', 'national_id',
                  'first_name', 'last_name', 'user_type', 'is_active')
     
@@ -122,7 +123,7 @@ class FarmerRegistrationForm(CustomUserCreationForm):
 class FarmUploadForm(forms.Form):
     """Form for uploading farm polygons"""
     farmer = forms.ModelChoiceField(
-        queryset=CustomUser.objects.filter(user_type='farmer'),
+        queryset=User.objects.filter(user_type='farmer'),
         required=True,
         help_text="Select the farmer"
     )
@@ -224,11 +225,11 @@ class InsurancePolicyForm(forms.ModelForm):
         # Filter farmers and farms
         if self.user and not self.user.is_admin:
             # Non-admins can only create policies for themselves
-            self.fields['farmer'].queryset = CustomUser.objects.filter(pk=self.user.pk)
+            self.fields['farmer'].queryset = User.objects.filter(pk=self.user.pk)
             self.fields['farm'].queryset = Farm.objects.filter(farmer=self.user, is_active=True)
         else:
             # Admins can create for any farmer
-            self.fields['farmer'].queryset = CustomUser.objects.filter(user_type='farmer')
+            self.fields['farmer'].queryset = User.objects.filter(user_type='farmer')
             self.fields['farm'].queryset = Farm.objects.filter(is_active=True)
         
         # Set created_by if new
@@ -357,7 +358,7 @@ class AnalysisSearchForm(forms.Form):
     )
     
     month = forms.ChoiceField(
-        choices=[(i, datetime(2000, i, 1).strftime('%B')) for i in range(1, 13)],
+        choices=[(i, date(2000, i, 1).strftime('%B')) for i in range(1, 13)],
         required=False
     )
     

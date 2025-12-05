@@ -115,8 +115,9 @@ def change_password(request):
 
 
 # ======================
-# DASHBOARD VIEWS
+# DASHBOARD VIEWS - FIXED
 # ======================
+# farms/views.py - Update just the DashboardView class
 
 class DashboardView(LoginRequiredMixin, TemplateView):
     """Main dashboard"""
@@ -161,9 +162,25 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                         'moderate': latest_risks.count('moderate'),
                         'low': latest_risks.count('low'),
                     }
+                else:
+                    context['risk_summary'] = {'high': 0, 'moderate': 0, 'low': 0}
         
         elif user.is_admin:
-            # Admin dashboard
+            # Admin dashboard - FIXED: Use correct date filtering
+            today = date.today()
+            
+            # Count new farms registered today - FIXED: Direct date comparison for DateField
+            new_farms_today = Farm.objects.filter(registration_date=today).count()
+            
+            # Count policies issued today - FIXED: Use __date for DateTimeField
+            new_policies_today = InsurancePolicy.objects.filter(created_at__date=today).count()
+            
+            # Count claims submitted today
+            new_claims_today = InsuranceClaim.objects.filter(submitted_date=today).count()
+            
+            # Count analyses run today
+            new_analyses_today = SatelliteAnalysis.objects.filter(created_at__date=today).count()
+            
             context.update({
                 'total_farmers': CustomUser.objects.filter(user_type='farmer').count(),
                 'total_farms': Farm.objects.filter(is_active=True).count(),
@@ -176,30 +193,38 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                     notification_type='system_alert',
                     is_read=False
                 )[:5],
+                'recent_activity': {
+                    'farms_added': new_farms_today,
+                    'policies_issued': new_policies_today,
+                    'claims_submitted': new_claims_today,
+                    'analyses_run': new_analyses_today,
+                }
             })
         
-        # Recent activity
+        # Recent activity for all users
         context['recent_activity'] = self.get_recent_activity(user)
         
         return context
     
     def get_recent_activity(self, user):
         """Get recent activity based on user type"""
+        today = date.today()
+        
         if user.is_admin:
+            # FIXED: Use correct field lookups
             return {
-                'farms_added': Farm.objects.filter(created_at__date=date.today()).count(),
-                'policies_issued': InsurancePolicy.objects.filter(created_at__date=date.today()).count(),
-                'claims_submitted': InsuranceClaim.objects.filter(submitted_date__date=date.today()).count(),
-                'analyses_run': SatelliteAnalysis.objects.filter(created_at__date=date.today()).count(),
+                'farms_added': Farm.objects.filter(registration_date=today).count(),
+                'policies_issued': InsurancePolicy.objects.filter(created_at__date=today).count(),
+                'claims_submitted': InsuranceClaim.objects.filter(submitted_date=today).count(),
+                'analyses_run': SatelliteAnalysis.objects.filter(created_at__date=today).count(),
             }
         else:
             return {
-                'my_farms': Farm.objects.filter(farmer=user, created_at__date=date.today()).count(),
-                'my_policies': InsurancePolicy.objects.filter(farmer=user, created_at__date=date.today()).count(),
-                'my_claims': InsuranceClaim.objects.filter(policy__farmer=user, submitted_date__date=date.today()).count(),
+                'my_farms': Farm.objects.filter(farmer=user, registration_date=today).count(),
+                'my_policies': InsurancePolicy.objects.filter(farmer=user, created_at__date=today).count(),
+                'my_claims': InsuranceClaim.objects.filter(policy__farmer=user, submitted_date=today).count(),
             }
-
-
+        
 class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     """Admin-only dashboard"""
     template_name = 'farms/admin_dashboard.html'
@@ -210,7 +235,7 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Statistics
+        # Statistics - FIXED: Use correct field names
         context.update({
             'user_stats': self.get_user_stats(),
             'farm_stats': self.get_farm_stats(),
@@ -235,14 +260,18 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         }
     
     def get_farm_stats(self):
-        """Get farm statistics"""
+        """Get farm statistics - FIXED: Use registration_date instead of created_at"""
         farms = Farm.objects.filter(is_active=True)
+        
+        # Count new farms today
+        new_farms_today = farms.filter(registration_date__date=date.today()).count()
+        
         return {
             'total': farms.count(),
             'total_area': farms.aggregate(Sum('area_ha'))['area_ha__sum'] or 0,
             'by_crop': dict(farms.values_list('crop_type').annotate(count=Count('id')).order_by('-count')),
             'by_county': dict(farms.values_list('county__subcounty').annotate(count=Count('id')).order_by('-count')),
-            'new_today': farms.filter(registration_date=date.today()).count(),
+            'new_today': new_farms_today,
             'irrigated': farms.filter(irrigation=True).count(),
         }
     
@@ -293,11 +322,11 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
 
 # ======================
-# FARM MANAGEMENT VIEWS
+# FARM MANAGEMENT VIEWS - FIXED
 # ======================
 
 class FarmListView(LoginRequiredMixin, ListView):
-    """List farms with filtering"""
+    """List farms with filtering - FIXED: Use registration_date"""
     model = Farm
     template_name = 'farms/farm_list.html'
     context_object_name = 'farms'
@@ -344,6 +373,7 @@ class FarmListView(LoginRequiredMixin, ListView):
         elif irrigation == 'no':
             queryset = queryset.filter(irrigation=False)
         
+        # FIXED: Use registration_date instead of created_at
         return queryset.order_by('-registration_date')
     
     def get_context_data(self, **kwargs):
@@ -534,11 +564,11 @@ class FarmDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
 
 # ======================
-# INSURANCE VIEWS
+# INSURANCE VIEWS - FIXED
 # ======================
 
 class PolicyListView(LoginRequiredMixin, ListView):
-    """List insurance policies"""
+    """List insurance policies - FIXED: Use created_at"""
     model = InsurancePolicy
     template_name = 'farms/policy_list.html'
     context_object_name = 'policies'
@@ -568,6 +598,7 @@ class PolicyListView(LoginRequiredMixin, ListView):
                 Q(farm__name__icontains=search)
             )
         
+        # FIXED: Use created_at (this field exists in InsurancePolicy)
         return queryset.order_by('-created_at')
     
     def get_context_data(self, **kwargs):
@@ -656,7 +687,7 @@ class PolicyUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
 
 class ClaimListView(LoginRequiredMixin, ListView):
-    """List insurance claims"""
+    """List insurance claims - FIXED: Use created_at"""
     model = InsuranceClaim
     template_name = 'farms/claim_list.html'
     context_object_name = 'claims'
@@ -690,6 +721,7 @@ class ClaimListView(LoginRequiredMixin, ListView):
         if date_to:
             queryset = queryset.filter(trigger_date__lte=date_to)
         
+        # FIXED: Use created_at (this field exists in InsuranceClaim)
         return queryset.order_by('-created_at')
     
     def get_context_data(self, **kwargs):
