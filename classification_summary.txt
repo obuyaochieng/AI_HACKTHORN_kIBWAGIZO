@@ -1,0 +1,31 @@
+================================================================================
+RAINFALL CLASSIFICATION AND DROUGHT RISK ASSESSMENT REPORT
+================================================================================
+
+SUMMARY STATISTICS
+----------------------------------------
+Total Locations Classified: 190
+Number of Rainfall Clusters: 3
+Most Common Rainfall Regime: Very Low Rainfall, Hyper-Arid
+Most Common Drought Risk Level: Low
+Most Common Monthly Pattern: Mostly Dry Year
+Most Common Quarterly Pattern: No Rainfall
+Most Common Seasonal Pattern: No Rainfall
+
+
+CLUSTER DISTRIBUTION
+----------------------------------------
+Cluster 0: 162 locations (85.3%)
+Cluster 1: 1 locations (0.5%)
+Cluster 2: 27 locations (14.2%)
+
+
+DROUGHT RISK DISTRIBUTION
+----------------------------------------
+Low: 190 locations (100.0%)
+
+
+RAINFALL REGIMES
+----------------------------------------
+Very Low Rainfall, Hyper-Arid: 162 locations (85.3%)
+High Rainfall, Less Seasonal: 28 locations (14.7%)

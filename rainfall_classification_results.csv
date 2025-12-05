@@ -1,0 +1,191 @@
+location_id,cluster,rainfall_regime,drought_risk,comprehensive_class,monthly_type,quarterly_type,seasonal_type,total_rainfall,mean_rainfall,rainy_days_percent,max_dry_spell,cv_rainfall,wettest_season,driest_season,wettest_quarter,driest_quarter,wet_months_count,dry_months_count
+4720446,1,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Mostly Wet Year,Heavy Q4 Dominant,Winter-Spring Dominant,34393.02547,115.026841,97.65886288,2,1.391378823,MAM,JJA,Q4,Q3,12,0
+11350773,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+492807117,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+492807893,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+492810929,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+571414747,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+571416482,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+571416500,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+571416502,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+571416503,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+571416505,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+571416506,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+571838768,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+571838770,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+571838777,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+571838779,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+571838780,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+571838781,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Mostly Dry Year,Heavy Q4 Dominant,Winter-Spring Dominant,72.37720059,0.242064216,89.63210702,3,1.296349759,MAM,JJA,Q4,Q3,0,10
+571840185,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+571840200,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+571840208,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+571840210,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+572359569,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+572359573,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+572359577,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+572359586,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+578369429,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+578369430,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+582492062,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+582492066,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+582500803,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+582500805,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Wet Summer,Late Year Peaking,Winter-Spring Dominant,93.07898828,0.311300964,100,0,1.235159669,MAM,JJA,Q4,Q3,1,4
+582500807,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+582500808,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+582501004,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+585097422,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Mostly Dry Year,Late Year Peaking,Winter-Spring Dominant,76.08555352,0.254466734,97.65886288,1,1.26748203,MAM,JJA,Q4,Q3,0,8
+585340659,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+585340660,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+585340662,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Mostly Dry Year,Late Year Peaking,Winter-Spring Dominant,78.2345205,0.261653915,98.3277592,1,1.273099836,MAM,JJA,Q4,Q3,1,9
+585340663,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+585340664,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+585340665,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+585340666,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+827847118,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+827847133,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Mostly Dry Year,Late Year Peaking,Winter-Spring Dominant,62.52207625,0.209103934,73.91304348,4,1.269414068,MAM,JJA,Q4,Q3,0,9
+827847135,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Mostly Dry Year,Late Year Peaking,Winter-Spring Dominant,62.52207625,0.209103934,73.91304348,4,1.269414068,MAM,JJA,Q4,Q3,0,9
+827847136,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Mostly Dry Year,Late Year Peaking,Winter-Spring Dominant,62.52207625,0.209103934,73.91304348,4,1.269414068,MAM,JJA,Q4,Q3,0,9
+827847137,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Mostly Dry Year,Late Year Peaking,Winter-Spring Dominant,62.52207625,0.209103934,73.91304348,4,1.269414068,MAM,JJA,Q4,Q3,0,9
+827847138,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+827847140,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+827847142,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+827847143,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+827847146,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+830382691,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+830382692,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+830382699,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+830402251,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Mostly Wet Year,Heavy Q4 Dominant,Winter-Spring Dominant,324.0699337,1.083845932,69.56521739,4,1.358423131,MAM,JJA,Q4,Q3,7,4
+848924174,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+849366800,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Mostly Dry Year,Heavy Q4 Dominant,Winter-Spring Dominant,53.94275445,0.18041055,71.90635452,4,1.376600021,MAM,JJA,Q4,Q3,0,12
+849838178,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+849838179,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+849838180,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+849838181,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+849838182,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+849838183,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+849838184,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+849838185,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+849838186,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+849838187,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+849838188,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+849838189,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+849838190,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850196609,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Mostly Dry Year,Late Year Peaking,Winter-Spring Dominant,64.22893618,0.214812496,96.65551839,1,1.274186114,MAM,JJA,Q4,Q3,0,9
+850217478,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Mostly Dry Year,Heavy Q4 Dominant,Winter-Spring Dominant,70.01622236,0.234167968,77.59197324,4,1.375389951,MAM,JJA,Q4,Q3,0,10
+850221362,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850221364,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850221365,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850221368,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850221369,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850221370,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850221372,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850221373,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850221374,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Mostly Dry Year,Heavy Q4 Dominant,Winter-Spring Dominant,70.01622236,0.234167968,77.59197324,4,1.375389951,MAM,JJA,Q4,Q3,0,10
+850221377,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Mostly Dry Year,Heavy Q4 Dominant,Winter-Spring Dominant,70.01622236,0.234167968,77.59197324,4,1.375389951,MAM,JJA,Q4,Q3,0,10
+850221378,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850661503,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Variable/Erratic,Heavy Q4 Dominant,Winter-Spring Dominant,161.8282633,0.54123165,71.90635452,4,1.376600021,MAM,JJA,Q4,Q3,0,3
+850661511,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850661512,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Mostly Dry Year,Heavy Q4 Dominant,Winter-Spring Dominant,53.94275445,0.18041055,71.90635452,4,1.376600021,MAM,JJA,Q4,Q3,0,12
+850661513,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850661514,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850661515,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850661516,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Mostly Wet Year,Heavy Q4 Dominant,Winter-Spring Dominant,370.0297643,1.23755774,71.90635452,4,1.390446812,MAM,JJA,Q4,Q3,8,3
+850793064,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Variable/Erratic,Heavy Q4 Dominant,Winter-Spring Dominant,107.8855089,0.3608211,71.90635452,4,1.376600021,MAM,JJA,Q4,Q3,0,5
+850794320,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850804673,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850804674,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850804676,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850807136,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850809086,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850809087,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Mostly Dry Year,Heavy Q4 Dominant,Winter-Spring Dominant,52.5669848,0.175809314,71.57190635,4,1.392502292,MAM,JJA,Q4,Q3,0,12
+850810624,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850810625,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850810626,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850810627,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850811615,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850811616,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850811617,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850811618,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850811619,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Mostly Dry Year,Heavy Q4 Dominant,Winter-Spring Dominant,52.5669848,0.175809314,71.57190635,4,1.392502292,MAM,JJA,Q4,Q3,0,12
+850811620,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850811621,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850811622,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850813273,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850813274,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850813275,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850813276,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850813277,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850813278,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850813279,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850815135,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850815136,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850815137,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850815138,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850815139,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850815140,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850815141,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850815142,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Mostly Dry Year,Heavy Q4 Dominant,Winter-Spring Dominant,52.5669848,0.175809314,71.57190635,4,1.392502292,MAM,JJA,Q4,Q3,0,12
+850815143,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850815144,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850815145,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850815146,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850815686,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Variable/Erratic,Heavy Q4 Dominant,Winter-Spring Dominant,105.1339696,0.351618627,71.57190635,4,1.392502292,MAM,JJA,Q4,Q3,0,5
+850815687,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850815688,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850815689,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850815690,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850815691,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850817803,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850817804,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850817805,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850817806,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850817807,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+850817808,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+851243929,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+920392823,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+920392832,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+920392833,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+920392834,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+920392846,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+920392847,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+920392848,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+920392849,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+920404762,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+920419803,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+999029289,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+999029290,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+999029306,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+999029307,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+999029308,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+999029309,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+999073917,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+999073918,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+1097270983,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+1097270984,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Mostly Dry Year,Heavy Q4 Dominant,Winter-Spring Dominant,56.08346868,0.187570129,76.58862876,4,1.44748412,MAM,JJA,Q4,Q3,0,11
+1097270989,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+1097270991,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Mostly Dry Year,Heavy Q4 Dominant,Winter-Spring Dominant,56.08346868,0.187570129,76.58862876,4,1.44748412,MAM,JJA,Q4,Q3,0,11
+1097270992,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+1097270993,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+1097275287,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+1097275288,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+1097275295,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Mostly Dry Year,Heavy Q4 Dominant,Winter-Spring Dominant,59.48115369,0.198933624,78.59531773,4,1.421142541,MAM,JJA,Q4,Q3,0,11
+1097275296,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+1097275303,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+1097275322,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+1097275333,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+1097275334,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+1097275336,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Mostly Dry Year,Heavy Q4 Dominant,Winter-Spring Dominant,59.48115369,0.198933624,78.59531773,4,1.421142541,MAM,JJA,Q4,Q3,0,11
+1097275337,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+1097275340,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+1097275342,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+1097275343,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+1189000162,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+1189000490,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+1189000491,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+1189002593,2,"High Rainfall, Less Seasonal",Low,"High Rainfall, Less Seasonal - Low Risk",Mostly Dry Year,Heavy Q4 Dominant,Winter-Spring Dominant,73.85234301,0.246997803,89.96655518,1,1.469635347,SON,JJA,Q4,Q3,0,10
+1189002594,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+1189002596,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+1189003166,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+1189003167,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
+1194723986,0,"Very Low Rainfall, Hyper-Arid",Low,"Very Low Rainfall, Hyper-Arid - Low Risk",Mostly Dry Year,No Rainfall,No Rainfall,0,0,0,299,0,DJF,DJF,Q1,Q1,0,12
