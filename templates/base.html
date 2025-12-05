@@ -3,129 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Machakos AIDSTTUP - Drought Monitoring{% endblock %}</title>
+    <title>{% block title %}Machakos Drought Monitoring{% endblock %}</title>
     
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
-    <!-- Custom CSS -->
     <style>
-        :root {
-            --primary-color: #2c7873;
-            --secondary-color: #6fb3b8;
-            --accent-color: #ff7f50;
-            --light-bg: #f8f9fa;
-            --dark-text: #343a40;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--light-bg);
-            color: var(--dark-text);
-        }
-        
-        .navbar-brand {
-            font-weight: 700;
-            color: var(--primary-color) !important;
-        }
-        
         .sidebar {
-            background: linear-gradient(180deg, #2c7873 0%, #204e4a 100%);
-            color: white;
             min-height: 100vh;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            background: #343a40;
         }
-        
         .sidebar .nav-link {
-            color: rgba(255,255,255,0.8);
-            padding: 12px 20px;
-            margin: 5px 0;
-            border-radius: 8px;
-            transition: all 0.3s;
+            color: #adb5bd;
         }
-        
         .sidebar .nav-link:hover {
-            background-color: rgba(255,255,255,0.1);
-            color: white;
+            color: #fff;
+            background: #495057;
         }
-        
         .sidebar .nav-link.active {
-            background-color: var(--accent-color);
-            color: white;
+            color: #fff;
+            background: #007bff;
         }
-        
         .card {
-            border-radius: 12px;
-            border: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            transition: transform 0.3s;
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .card-header {
-            background-color: white;
-            border-bottom: 2px solid var(--primary-color);
-            font-weight: 600;
-        }
-        
-        .risk-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-weight: 600;
-        }
-        
-        .risk-low { background-color: #d4edda; color: #155724; }
-        .risk-moderate { background-color: #fff3cd; color: #856404; }
-        .risk-severe { background-color: #f8d7da; color: #721c24; }
-        
-        #map {
-            height: 600px;
-            border-radius: 12px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        
-        .legend {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
+            border-radius: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        
-        .index-card {
-            text-align: center;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
+        .stat-card {
+            transition: transform 0.3s;
         }
-        
-        .index-value {
-            font-size: 2rem;
-            font-weight: 700;
+        .stat-card:hover {
+            transform: translateY(-5px);
         }
-        
-        .farm-marker {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
+        .risk-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
             font-weight: bold;
-            font-size: 14px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .risk-low { background: #28a745; color: white; }
+        .risk-moderate { background: #ffc107; color: black; }
+        .risk-high { background: #dc3545; color: white; }
+        .map-container {
+            height: 500px;
+            border-radius: 10px;
+            overflow: hidden;
         }
     </style>
     
@@ -133,11 +60,10 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'map_viewer' %}">
-                <i class="fas fa-tractor me-2"></i>
-                Machakos AIDSTTUP
+            <a class="navbar-brand" href="{% url 'dashboard' %}">
+                <i class="fas fa-tractor"></i> Machakos Drought Monitoring
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -145,138 +71,164 @@
             </button>
             
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" 
+                           href="{% url 'dashboard' %}">
+                            <i class="fas fa-home"></i> Dashboard
+                        </a>
+                    </li>
+                    
                     {% if user.is_authenticated %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-user me-1"></i> {{ user.username }}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'farm_list' %}active{% endif %}" 
+                           href="{% url 'farm_list' %}">
+                            <i class="fas fa-map-marker-alt"></i> Farms
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'satellite_analysis' %}active{% endif %}" 
+                           href="{% url 'satellite_analysis' %}">
+                            <i class="fas fa-satellite"></i> Analysis
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'policy_list' %}active{% endif %}" 
+                           href="{% url 'policy_list' %}">
+                            <i class="fas fa-shield-alt"></i> Insurance
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'map_view' %}active{% endif %}" 
+                           href="{% url 'map_view' %}">
+                            <i class="fas fa-map"></i> Map
+                        </a>
+                    </li>
+                    
+                    {% if user.is_admin %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}" 
+                           href="{% url 'admin_dashboard' %}">
+                            <i class="fas fa-cogs"></i> Admin
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endif %}
+                </ul>
+                
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" 
+                           data-bs-toggle="dropdown">
+                            <i class="fas fa-user"></i> {{ user.get_full_name|default:user.username }}
+                            {% if user.is_admin %}
+                            <span class="badge bg-primary">Admin</span>
+                            {% elif user.is_farmer %}
+                            <span class="badge bg-success">Farmer</span>
+                            {% endif %}
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <a class="dropdown-item" href="{% url 'user_profile' %}">
+                                <i class="fas fa-user-cog"></i> Profile
                             </a>
-                            <ul class="dropdown-menu">
-                                {% if user.is_staff %}
-                                    <li><a class="dropdown-item" href="{% url 'admin:index' %}">
-                                        <i class="fas fa-cog me-2"></i>Admin Panel
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'dashboard' %}">
-                                        <i class="fas fa-chart-line me-2"></i>Dashboard
-                                    </a></li>
+                            <a class="dropdown-item" href="{% url 'notifications' %}">
+                                <i class="fas fa-bell"></i> Notifications
+                                {% if user.notifications.filter.is_read == False %}
+                                <span class="badge bg-danger">{{ user.notifications.filter.is_read=False.count }}</span>
                                 {% endif %}
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'logout' %}">
-                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
-                                </a></li>
-                            </ul>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="btn btn-outline-primary" href="{% url 'login' %}">
-                                <i class="fas fa-sign-in-alt me-1"></i> Login
                             </a>
-                        </li>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{% url 'logout' %}">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </div>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'register' %}">
+                            <i class="fas fa-user-plus"></i> Register
+                        </a>
+                    </li>
                     {% endif %}
                 </ul>
             </div>
         </div>
     </nav>
     
+    <!-- Messages -->
+    {% if messages %}
+    <div class="container mt-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
     <!-- Main Content -->
     <div class="container-fluid">
         <div class="row">
-            <!-- Sidebar -->
-            {% if user.is_authenticated %}
-            <div class="col-lg-2 col-md-3 sidebar d-none d-md-block">
-                <div class="pt-4">
-                    <h5 class="text-center mb-4">
-                        <i class="fas fa-map-marked-alt me-2"></i>Navigation
-                    </h5>
-                    
+            <!-- Sidebar (for admin) -->
+            {% if user.is_admin and 'admin' in request.path %}
+            <div class="col-md-2 sidebar d-none d-md-block">
+                <div class="position-sticky pt-3">
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/farms/' %}active{% endif %}" 
-                               href="{% url 'map_viewer' %}">
-                                <i class="fas fa-map me-2"></i> Farm Map
+                            <a class="nav-link" href="{% url 'admin_dashboard' %}">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if 'dashboard' in request.path %}active{% endif %}" 
-                               href="{% url 'dashboard' %}">
-                                <i class="fas fa-chart-bar me-2"></i> Dashboard
+                            <a class="nav-link" href="/admin/">
+                                <i class="fas fa-cog"></i> Django Admin
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if 'analysis' in request.path %}active{% endif %}" 
-                               href="{% url 'satellite_analysis' %}">
-                                <i class="fas fa-satellite me-2"></i> Satellite Analysis
-                            </a>
-                        </li>
-                        
-                        {% if user.is_staff %}
-                        <li class="nav-item mt-4">
-                            <small class="text-uppercase text-muted">Admin Tools</small>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'import_shapefiles' %}">
-                                <i class="fas fa-file-import me-2"></i> Import Data
+                            <a class="nav-link" href="{% url 'farm_list' %}">
+                                <i class="fas fa-map-marker-alt"></i> Manage Farms
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'admin:farms_farm_changelist' %}">
-                                <i class="fas fa-edit me-2"></i> Manage Farms
+                            <a class="nav-link" href="{% url 'policy_list' %}">
+                                <i class="fas fa-shield-alt"></i> Manage Policies
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'admin:insurance_insuranceclaim_changelist' %}">
-                                <i class="fas fa-file-invoice-dollar me-2"></i> Insurance Claims
+                            <a class="nav-link" href="{% url 'claim_list' %}">
+                                <i class="fas fa-file-invoice-dollar"></i> Manage Claims
                             </a>
                         </li>
-                        {% endif %}
-                        
-                        <li class="nav-item mt-4">
-                            <small class="text-uppercase text-muted">Quick Actions</small>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'batch_analysis' %}">
+                                <i class="fas fa-satellite"></i> Batch Analysis
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <button class="nav-link" onclick="runAnalysis()">
-                                <i class="fas fa-play-circle me-2"></i> Run Analysis
-                            </button>
-                        </li>
-                        <li class="nav-item">
-                            <button class="nav-link" onclick="exportData()">
-                                <i class="fas fa-download me-2"></i> Export Data
-                            </button>
+                            <a class="nav-link" href="{% url 'test_gee' %}">
+                                <i class="fas fa-plug"></i> Test GEE
+                            </a>
                         </li>
                     </ul>
-                    
-                    <div class="mt-5 p-3" style="background: rgba(255,255,255,0.1); border-radius: 8px;">
-                        <small class="d-block">Last Updated</small>
-                        <div id="last-updated">Just now</div>
-                        
-                        <div class="mt-3">
-                            <small class="d-block">System Status</small>
-                            <div class="d-flex align-items-center">
-                                <div id="gee-status" class="badge bg-success me-2">GEE: Connected</div>
-                                <div id="api-status" class="badge bg-success">API: Online</div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
             {% endif %}
             
             <!-- Main Content Area -->
-            <div class="{% if user.is_authenticated %}col-lg-10 col-md-9{% else %}col-12{% endif %}">
-                <div class="p-4">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                    
-                    {% block content %}
-                    <!-- Page content goes here -->
-                    {% endblock %}
-                </div>
+            <div class="{% if user.is_admin and 'admin' in request.path %}col-md-10{% else %}col-12{% endif %}">
+                <main class="py-4">
+                    {% block content %}{% endblock %}
+                </main>
             </div>
         </div>
     </div>
@@ -286,32 +238,45 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <h5>Machakos AIDSTTUP</h5>
-                    <p class="mb-0">AI for Drought Smart Technology for The Up Project</p>
-                    <small>© {% now "Y" %} - All rights reserved</small>
+                    <h5>Machakos Drought Monitoring</h5>
+                    <p>Satellite-based drought monitoring and insurance system for Machakos County farmers.</p>
                 </div>
-                <div class="col-md-6 text-md-end">
-                    <p class="mb-1">Powered by:</p>
-                    <div class="d-flex justify-content-md-end gap-3">
-                        <span class="badge bg-secondary">Django</span>
-                        <span class="badge bg-secondary">Google Earth Engine</span>
-                        <span class="badge bg-secondary">PostgreSQL/PostGIS</span>
-                        <span class="badge bg-secondary">Leaflet</span>
-                    </div>
-                    <p class="mt-2 mb-0">
-                        <small>Data Sources: Sentinel-2, CHIRPS, Machakos County GIS</small>
-                    </p>
+                <div class="col-md-3">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'dashboard' %}" class="text-light">Dashboard</a></li>
+                        <li><a href="{% url 'farm_list' %}" class="text-light">Farms</a></li>
+                        <li><a href="{% url 'satellite_analysis' %}" class="text-light">Analysis</a></li>
+                        <li><a href="{% url 'policy_list' %}" class="text-light">Insurance</a></li>
+                    </ul>
                 </div>
+                <div class="col-md-3">
+                    <h5>Contact</h5>
+                    <p><i class="fas fa-phone"></i> +254 700 000 000</p>
+                    <p><i class="fas fa-envelope"></i> info@machakosdrought.co.ke</p>
+                </div>
+            </div>
+            <hr class="bg-light">
+            <div class="text-center">
+                <p>&copy; {% now "Y" %} Machakos Drought Monitoring System. All rights reserved.</p>
             </div>
         </div>
     </footer>
     
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
-    <!-- CSRF Token for AJAX -->
+    {% block extra_js %}{% endblock %}
+    
     <script>
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(function() {
+            $('.alert').alert('close');
+        }, 5000);
+        
+        // CSRF token setup for AJAX
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -328,114 +293,14 @@
         }
         
         const csrftoken = getCookie('csrftoken');
-    </script>
-    
-    <!-- Utility Functions -->
-    <script>
-        function showLoading(message = 'Processing...') {
-            // Create loading overlay
-            const overlay = document.createElement('div');
-            overlay.id = 'loading-overlay';
-            overlay.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.7);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 9999;
-                color: white;
-                font-size: 1.2rem;
-            `;
-            overlay.innerHTML = `
-                <div class="text-center">
-                    <div class="spinner-border mb-3" role="status"></div>
-                    <div>${message}</div>
-                </div>
-            `;
-            document.body.appendChild(overlay);
-        }
         
-        function hideLoading() {
-            const overlay = document.getElementById('loading-overlay');
-            if (overlay) overlay.remove();
-        }
-        
-        function showToast(message, type = 'success') {
-            const toastContainer = document.getElementById('toast-container') || (() => {
-                const container = document.createElement('div');
-                container.id = 'toast-container';
-                container.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    z-index: 9999;
-                `;
-                document.body.appendChild(container);
-                return container;
-            })();
-            
-            const toastId = 'toast-' + Date.now();
-            const toast = document.createElement('div');
-            toast.id = toastId;
-            toast.className = `toast align-items-center text-white bg-${type} border-0`;
-            toast.setAttribute('role', 'alert');
-            toast.innerHTML = `
-                <div class="d-flex">
-                    <div class="toast-body">
-                        ${message}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="document.getElementById('${toastId}').remove()"></button>
-                </div>
-            `;
-            
-            toastContainer.appendChild(toast);
-            
-            // Auto remove after 5 seconds
-            setTimeout(() => {
-                if (document.getElementById(toastId)) {
-                    document.getElementById(toastId).remove();
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
                 }
-            }, 5000);
-        }
-        
-        async function makeRequest(url, method = 'GET', data = null) {
-            const options = {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken
-                }
-            };
-            
-            if (data) {
-                options.body = JSON.stringify(data);
             }
-            
-            try {
-                const response = await fetch(url, options);
-                return await response.json();
-            } catch (error) {
-                console.error('Request failed:', error);
-                showToast('Request failed: ' + error.message, 'danger');
-                return { success: false, error: error.message };
-            }
-        }
-        
-        function updateLastUpdated() {
-            const now = new Date();
-            document.getElementById('last-updated').textContent = 
-                now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        }
-        
-        // Update time every minute
-        setInterval(updateLastUpdated, 60000);
-        updateLastUpdated();
+        });
     </script>
-    
-    {% block extra_js %}{% endblock %}
 </body>
 </html>
